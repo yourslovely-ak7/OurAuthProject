@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SignUp Page</title>
+</head>
+<link rel="stylesheet" type="text/css" href="styles/signUp.css">
+<body>
+	
+	<div id="container">
+		<form>
+			<label>Username</label>
+			<input type="text" id="name">
+			<br/>
+			<label>First Name</label>
+			<input type="text" id="fname">
+			<label>Last Name</label>
+			<input type="text" id="lname">
+			<br/>
+			<label>Email ID</label>
+			<input type="email" name="email" id="email">
+			<br/>
+			<label>Password</label>
+			<input type="password" id="password">
+			<br/>
+			<label>Confirm Password</label>
+			<input type="password" id="confirmPassword">
+			<br/>
+			<label>Gender</label>
+			<div class="radioBox">
+				<input type="radio" name="gender" value="Male">
+				<label>Male</label>
+			</div>
+			<div class="radioBox">
+				<input type="radio" name="gender" value="Female">
+				<label>Female</label>
+			</div>
+		</form>
+			<br/>
+			<button onclick="createUser()">Sign Up</button>
+	</div>
+	
+	<script src="signUp.js"></script>
+</body>
+</html>

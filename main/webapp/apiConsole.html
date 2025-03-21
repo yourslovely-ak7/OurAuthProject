@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>OurAuth Console</title>
+</head>
+<link rel="stylesheet" type="text/css" href="styles/apiConsole.css">
+<body>
+	<div id="container">
+		<div id="firstBox">
+			<form>
+				<label>Client Name</label>
+				<input type="text" name="name" id="name">
+				<br/>
+				<label>Redirect Url</label>
+				<input type="url" id="url">
+				<br/>
+			</form>
+			<button onclick="registerClient()">REGISTER</button>
+		</div>
+		<div id="secondBox" style="display:none;">
+			<form>
+				<label>ClientName</label>
+				<input type="text" name="cName" id="cName" disabled>
+				<br/>
+				<label>Client ID</label>
+				<input type="text" id="cId" disabled>
+				<br/>
+				<label>Client Secret</label>
+				<input type="text" id="cSecret" disabled>
+				<br/>
+			</form>
+		</div>
+	</div>
+	<script src="apiConsole.js"></script>
+</body>
+</html>

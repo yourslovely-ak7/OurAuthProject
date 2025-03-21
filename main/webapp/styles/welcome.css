@@ -1,0 +1,12 @@
+#dataContainer{
+    display: flex;
+}
+.row{
+    display: flex;
+    justify-content: space-between;
+}
+.element{
+    width: 25vw;
+    padding: 35px;
+    border-style: outset;
+}

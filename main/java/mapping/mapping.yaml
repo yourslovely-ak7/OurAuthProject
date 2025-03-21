@@ -1,0 +1,86 @@
+User:
+ table: "User"
+ fields:
+  userId: "user_id"
+  name: "name"
+  email: "email"
+  gender: "gender"
+  password: "password"
+  firstName: "first_name"
+  lastName: "last_name"
+ pk: "user_id"
+ autoInc: "user_id"
+
+Scope:
+ table: "Scope"
+ fields:
+  authId: "auth_id"
+  scope: "scope"
+
+RefreshToken:
+ table: "RefreshToken"
+ fields:
+  refreshTokenId: "rt_id"
+  clientRowId: "client_pk"
+  userId: "user_id"
+  refreshToken: "refresh_token"
+  createdTime: "created_time"
+  status: "status"
+  authId: "auth_id"
+ pk: "rt_id"
+ fk: 
+  client_fk:
+   reference: "Client"
+   field: "client_pk"
+   referenceField: "client_pk"
+ autoInc: "rt_id"
+
+Client:
+ table: "Client"
+ fields:
+  clientRowId: "client_pk"
+  clientName: "client_name"
+  clientId: "client_id"
+  clientSecret: "client_secret"
+  redirectUrl: "redirect_url"
+  createdBy: "created_by"
+ pk: "client_pk"
+ fk:
+  user_fk:
+   reference: "User"
+   field: "created_by"
+   referenceField: "user_id"
+ autoInc: "client_pk"
+
+Authorization:
+ table: "Authorization"
+ fields:
+  authId: "auth_id"
+  clientRowId: "client_pk"
+  userId: "user_id"
+  authCode: "code"
+  createdTime: "created_time"
+  status: "status"
+ pk: "auth_id"
+ fk:
+  client_fk:
+   reference: "Client"
+   field: "client_pk"
+   referenceField: "client_pk"
+ autoInc: "auth_id"
+
+AccessToken:
+ table: "AccessToken"
+ fields:
+  accessTokenId: "at_id"
+  refreshTokenId: "rt_id"
+  accessToken: "access_token"
+  createdTime: "created_time"
+  status: "status"
+ pk: "at_id"
+ fk:
+  refreshToken_fk:
+   reference: "RefreshToken"
+   field: "rt_id"
+   referenceField: "rt_id"
+ autoInc: "at_id"

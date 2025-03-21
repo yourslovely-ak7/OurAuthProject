@@ -1,0 +1,62 @@
+@charset "UTF-8";
+
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Container for consent checkboxes */
+#container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 40vw;
+    margin: 20px auto;
+    text-align: left;
+}
+
+/* Headings */
+h1 {
+    color: #333;
+}
+
+/* Buttons */
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* Allow button - Green */
+button:first-child {
+    background-color: #28a745;
+    color: white;
+}
+
+/* Cancel button - Red */
+button:last-child {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Button Hover Effects */
+button:hover {
+    opacity: 0.8;
+}
+
+/* Checkbox Labels */
+input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+label {
+    font-size: 16px;
+    color: #555;
+}
