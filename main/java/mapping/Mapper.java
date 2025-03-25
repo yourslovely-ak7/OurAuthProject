@@ -52,7 +52,7 @@ public class Mapper {
 			String tableName = yaml.getTableName(classSimpleName);
 
 			Fields<T> newData = new Fields<T>();
-			newData.setValues(mapFieldsAndValues(object, clazz, classSimpleName, "INSERT"));
+			newData.setValues(mapFieldsAndValues(object, clazz, classSimpleName, "INSERT_BATCH"));
 			newData.setRecords(records);
 
 			return query.insert(tableName, newData, false, true);
@@ -276,6 +276,9 @@ public class Mapper {
 				{
 					case "INSERT":
 						valueSet.put(tableFieldName, value);
+						break;
+					case "INSERT_BATCH":
+						valueSet.put(tableFieldName, pojoFieldName);
 						break;
 					case "UPDATE":
 						if (value != null && isNonEmptyValue(value)) {

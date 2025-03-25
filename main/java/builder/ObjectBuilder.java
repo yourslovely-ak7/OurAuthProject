@@ -5,8 +5,11 @@ import org.json.JSONObject;
 
 import crud.ClientOperation;
 import exception.InvalidException;
+import pojo.AccessToken;
 import pojo.Authorization;
 import pojo.Client;
+import pojo.RefreshToken;
+import pojo.Status;
 import pojo.User;
 
 public class ObjectBuilder {
@@ -47,6 +50,25 @@ public class ObjectBuilder {
 	{
 		return new Authorization()
 		.setClientRowId(clientRowId)
-		.setUserId(userId);
+		.setUserId(userId)
+		.setStatus(Status.ACTIVE.name());
+	}
+	
+	public static RefreshToken buildRefreshToken(int userId, int clientRowId, int authId)
+	{
+		return new RefreshToken()
+		.setUserId(userId)
+		.setClientRowId(clientRowId)
+		.setAuthId(authId)
+		.setStatus(Status.ACTIVE.name());
+		
+	}
+	
+	public static AccessToken buildAccessToken(int rtId, int authId)
+	{
+		return new AccessToken()
+		.setRefreshTokenId(rtId)
+		.setAuthId(authId)
+		.setStatus(Status.ACTIVE.name());
 	}
 }

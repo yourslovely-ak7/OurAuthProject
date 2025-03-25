@@ -7,7 +7,12 @@ public class AccessToken {
 	private String accessToken;
 	private long createdTime;
 	private String status;
+	private int authId;
 	
+	
+	public int getAuthId() {
+		return authId;
+	}
 	public int getAccessTokenId() {
 		return accessTokenId;
 	}
@@ -41,6 +46,10 @@ public class AccessToken {
 	}
 	public AccessToken setStatus(String status) {
 		this.status = status;
+		return this;
+	}
+	public AccessToken setAuthId(int authId) {
+		this.authId = authId;
 		return this;
 	}
 }

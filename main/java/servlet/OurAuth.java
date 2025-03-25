@@ -72,9 +72,8 @@ public class OurAuth extends HttpServlet
 		String scope= req.getParameter("scope");
 		String [] scopes= scope.split(" ");
 		
-		HttpSession session= req.getSession(false);
-		int userId= (int) session.getAttribute("userId");
-		int clientRowId= (int) session.getAttribute("clientRowId");
+		int userId= Helper.getUserId(req);
+		int clientRowId= Helper.getClientRowId(req);
 		
 		try
 		{
@@ -87,7 +86,7 @@ public class OurAuth extends HttpServlet
 			ScopeOperation.addScopes(auth.getAuthId(), scopes);
 
 			resp.setStatus(HttpServletResponse.SC_OK);
-			resp.sendRedirect(redirectUrl+"?code="+auth.getAuthCode());
+			resp.sendRedirect(redirectUrl+"?code="+auth.getAuthCode()+"&apiDomain=http://localhost:8081/OurAuth");
 		}
 		catch(InvalidException error)
 		{

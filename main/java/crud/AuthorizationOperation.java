@@ -12,7 +12,6 @@ import mapping.Mapper;
 import pojo.Authorization;
 import pojo.Condition;
 import pojo.Order;
-import pojo.Status;
 
 public class AuthorizationOperation 
 {
@@ -29,8 +28,7 @@ public class AuthorizationOperation
 			long millis= System.currentTimeMillis();
 			
 			auth.setAuthCode(authCode)
-			.setCreatedTime(millis)
-			.setStatus(Status.ACTIVE.name());
+			.setCreatedTime(millis);
 			
 			int authId= (int) newMap.create(auth, true);
 			

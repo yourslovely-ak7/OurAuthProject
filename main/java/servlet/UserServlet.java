@@ -100,11 +100,11 @@ public class UserServlet extends HttpServlet{
 			session.setAttribute("userId", fetchedUser.getUserId());
 			
 			String serviceUrl= req.getParameter("serviceUrl");
-			System.out.println("Redirect to:"+serviceUrl);
-			if(serviceUrl==null)
+			if(serviceUrl==null || serviceUrl.equals("null"))
 			{
-				serviceUrl= "http://localhost:8080/OurAuth/welcome.html";
+				serviceUrl= "http://localhost:8081/OurAuth/welcome.html";
 			}
+			System.out.println("Redirect to: "+serviceUrl);
 			JSONObject responseJson= new JSONObject();
 			responseJson.put("serviceUrl", serviceUrl);
 			

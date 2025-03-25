@@ -108,6 +108,11 @@ public class Helper {
 		return Integer.parseInt(req.getSession(false).getAttribute("userId").toString());
 	}
 	
+	public static int getClientRowId(HttpServletRequest req)
+	{
+		return Integer.parseInt(req.getSession(false).getAttribute("clientRowId").toString());
+	}
+	
 	public static String getPath(HttpServletRequest req)
 	{
 		StringBuffer reqUrl= req.getRequestURL();

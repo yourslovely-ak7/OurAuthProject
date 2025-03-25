@@ -61,7 +61,7 @@ public class QueryExecutor
 				int index = 1;
 				for(Map.Entry<String, Object> entry: fields.getValues().entrySet())
 				{
-					String column= entry.getKey();
+					String column= (String) entry.getValue();
 					String getterMethodName = "get" + Helper.capitalize(column);
 					Method getterMethod = clazz.getDeclaredMethod(getterMethodName);
 					Object value = getterMethod.invoke(iter);
@@ -69,6 +69,7 @@ public class QueryExecutor
 					statement.setObject(index, value);
 					index++;
 				}
+				statement.addBatch();
 			}
 
 			System.out.println("Query before execution : " + statement.toString());

@@ -74,6 +74,7 @@ AccessToken:
  fields:
   accessTokenId: "at_id"
   refreshTokenId: "rt_id"
+  authId: "auth_id"
   accessToken: "access_token"
   createdTime: "created_time"
   status: "status"
@@ -84,3 +85,11 @@ AccessToken:
    field: "rt_id"
    referenceField: "rt_id"
  autoInc: "at_id"
+ 
+Key:
+ table: "KeyDetails"
+ fields:
+  keyId: "key_id"
+  privateKey: "pvt_key"
+  publicKey: "pub_key"
+ pk: "key_id"
