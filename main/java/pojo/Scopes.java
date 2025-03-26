@@ -3,7 +3,8 @@ package pojo;
 public enum Scopes {
 
 	profile,
-	email;
+	email,
+	openid;
 	
 	@Override
 	public String toString()

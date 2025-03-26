@@ -1,6 +1,5 @@
 package crud;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,14 +77,7 @@ public class ClientOperation {
 	
 	public static String getClientSecret(String url) throws InvalidException
 	{
-		try
-		{
-			return Helper.getMD5Hash(url);
-		}
-		catch(NoSuchAlgorithmException error)
-		{
-			throw new InvalidException("Error occurred while generating client secret.", error);
-		}
+		return Helper.getMD5Hash(url);
 	}
 	
 	public static Client validateClient(String clientId, String redirectUrl) throws InvalidException

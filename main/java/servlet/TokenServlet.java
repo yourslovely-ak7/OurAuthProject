@@ -28,6 +28,7 @@ import crud.RefreshTokenOperation;
 import crud.ScopeOperation;
 import crud.UserOperation;
 import exception.InvalidException;
+import helper.Helper;
 import helper.KeyConvertor;
 import helper.Validator;
 import pojo.AccessToken;
@@ -121,7 +122,7 @@ public class TokenServlet extends HttpServlet
 		JSONObject payloadJson = new JSONObject();
 		payloadJson.put("aud", clientId);
 		payloadJson.put("azp", clientId);
-		payloadJson.put("iss", "http://localhost/OurAuth");
+		payloadJson.put("iss", "http://localhost:8081/OurAuth");
 		payloadJson.put("iat", timeInSec);
 		payloadJson.put("exp", timeInSec+ 3600);
 		
@@ -137,6 +138,11 @@ public class TokenServlet extends HttpServlet
 		if(scopes.contains(Scopes.email.name()))
 		{
 			payloadJson.put("email", user.getEmail());			
+		}
+		
+		if(scopes.contains(Scopes.openid.name()))
+		{
+			payloadJson.put("sub", Helper.getMD5Hash(userId+""));
 		}
 		
 		String encodedHeader= Base64.getEncoder().withoutPadding().encodeToString(headerJson.toString().getBytes(StandardCharsets.UTF_8));

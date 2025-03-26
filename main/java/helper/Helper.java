@@ -142,14 +142,30 @@ public class Helper {
 		return min + (int) (Math.random() * (max - min + 1));
 	}
 	
-	public static String getSHAHash(String value) throws NoSuchAlgorithmException 
+	public static String getSHAHash(String value) throws InvalidException 
 	{
-            return hash(MessageDigest.getInstance("SHA-256"), value);
+		try
+		{
+			return hash(MessageDigest.getInstance("SHA-256"), value);
+		}
+		catch(NoSuchAlgorithmException error)
+		{
+			System.out.println(error.getMessage());
+			throw new InvalidException("Error getting hash value.", error);
+		}
     }
 	
-	public static String getMD5Hash(String value) throws NoSuchAlgorithmException
+	public static String getMD5Hash(String value) throws InvalidException
 	{
-		return hash(MessageDigest.getInstance("MD5"), value);
+		try
+		{
+			return hash(MessageDigest.getInstance("MD5"), value);			
+		}
+		catch(NoSuchAlgorithmException error)
+		{
+			System.out.println(error.getMessage());
+			throw new InvalidException("Error getting hash value.", error);
+		}
 	}
 	
 	private static String hash(MessageDigest newMD, String value)
@@ -169,8 +185,6 @@ public class Helper {
 
 	public static String generateCode() throws InvalidException
 	{
-		try
-		{
 			StringBuilder sb= new StringBuilder();
 			
 			sb.append(getRandomInt())
@@ -180,10 +194,5 @@ public class Helper {
 			.append(getMD5Hash(getRandomString()));
 			
 			return sb.toString();
-		}
-		catch(NoSuchAlgorithmException error)
-		{
-			throw new InvalidException("Error occurred while generating auth code.", error);
-		}
 	}
 }

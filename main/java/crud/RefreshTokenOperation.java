@@ -4,15 +4,14 @@ import exception.ConstraintViolationException;
 import exception.InvalidException;
 import helper.Helper;
 import mapping.Mapper;
-import pojo.AccessToken;
 import pojo.RefreshToken;
 import pojo.Status;
 
 public class RefreshTokenOperation {
 
-	private static final String tableName= "RefreshToken";
-	private static final String pk= "refreshTokenId";
-	private static final Class<RefreshToken> pojo= RefreshToken.class;
+//	private static final String tableName= "RefreshToken";
+//	private static final String pk= "refreshTokenId";
+//	private static final Class<RefreshToken> pojo= RefreshToken.class;
 	private static Mapper newMap= new Mapper();
 	
 	public static RefreshToken createRTEntry(RefreshToken token) throws InvalidException

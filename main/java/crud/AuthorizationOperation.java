@@ -16,7 +16,7 @@ import pojo.Order;
 public class AuthorizationOperation 
 {
 	private static final String tableName= "Authorization";
-	private static final String pk= "authId";
+//	private static final String pk= "authId";
 	private static final Class<Authorization> pojo= Authorization.class;
 	private static Mapper newMap= new Mapper();
 	
