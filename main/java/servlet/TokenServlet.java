@@ -8,10 +8,10 @@ import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -43,8 +43,25 @@ import pojo.User;
 public class TokenServlet extends HttpServlet
 {
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		
+		String type= req.getParameter("responseType");
+		System.out.println("Token request received for "+type);
+
+		switch(type)
+		{
+			case "token":
+				getTokens(req, resp);
+				break;
+			
+			case "refresh":
+				refreshToken(req, resp);
+				break;
+		}
+	}
+	
+	private void getTokens(HttpServletRequest req, HttpServletResponse resp) throws IOException
+	{
 		String clientId= req.getParameter("clientId");
 		String clientSecret= req.getParameter("clientSecret");
 		String redirectUrl= req.getParameter("redirectUrl");
@@ -55,7 +72,7 @@ public class TokenServlet extends HttpServlet
 			Client client=null;
 			try
 			{
-				client= ClientOperation.validateClient(clientId, redirectUrl);
+				client= ClientOperation.validateClientByIdAndUrl(clientId, redirectUrl);
 			}
 			catch(InvalidException error)
 			{
@@ -74,30 +91,22 @@ public class TokenServlet extends HttpServlet
 				int authId= auth.getAuthId();
 				JSONObject response= new JSONObject();
 				
-				RefreshToken rToken= ObjectBuilder.buildRefreshToken(userId, clientRowId, authId);
-				do
-				{
-					rToken= RefreshTokenOperation.createRTEntry(rToken);					
-				}
-				while(rToken==null);
-				
-				AccessToken aToken= ObjectBuilder.buildAccessToken(rToken.getRefreshTokenId(), authId);
-				
-				do {
-					aToken= AccessTokenOperation.createATEntry(aToken);
-				}
-				while(aToken==null);
+				RefreshToken rToken= generateRefreshToken(userId, clientRowId, authId);
+				String aToken= generateAccessToken(rToken.getRefreshTokenId(), authId);
 				
 				response.put("refreshToken", rToken.getRefreshToken());
-				response.put("accessToken", aToken.getAccessToken());
+				response.put("accessToken", aToken);
+				response.put("expiresIn", 3600);
 				
 				List<String> scopes= ScopeOperation.getScopes(authId);
-				if(scopes.contains(Scopes.email.name()) || scopes.contains(Scopes.profile.name()))
+				System.out.println("Scopes granted: "+scopes);
+				
+				if(Helper.hasOIDCScopes(scopes))
 				{
 					String idToken= generateIdToken(userId, scopes, clientId);
 					response.put("idToken", idToken);
 				}
-				
+
 				resp.setStatus(HttpServletResponse.SC_OK);
 				resp.getWriter().write(response.toString());
 			}
@@ -107,6 +116,97 @@ public class TokenServlet extends HttpServlet
 			error.printStackTrace();
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	private void refreshToken(HttpServletRequest req, HttpServletResponse resp) throws IOException
+	{
+		String clientId= req.getParameter("clientId");
+		String clientSecret= req.getParameter("clientSecret");
+		String refreshToken= req.getParameter("refreshToken");
+		
+		Client client=null;
+		try
+		{
+			client= ClientOperation.validateClientById(clientId);
+			if(!(client.getClientSecret().equals(clientSecret)))
+			{
+				throw new InvalidException("Client secret is invalid!");
+			}
+		}
+		catch(InvalidException error)
+		{
+			error.printStackTrace();
+			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			resp.getWriter().write("{\"error\": \"" + "Invalid client!" + "\"}");
+		}
+
+		try
+		{
+			Validator.checkForNull(refreshToken);
+			RefreshToken rToken= RefreshTokenOperation.getRT(refreshToken);
+			String aToken= generateAccessToken(rToken.getRefreshTokenId(), rToken.getAuthId());
+			
+			RefreshToken newToken= new RefreshToken();
+			String token= null;
+			do {
+				token= RefreshTokenOperation.updateRT(newToken, rToken.getRefreshTokenId());
+			}
+			while(token==null);
+			
+			JSONObject jsonResponse= new JSONObject();
+			jsonResponse.put("refreshToken", token);
+			jsonResponse.put("accessToken", aToken);
+			
+			try
+			{
+				String scope= req.getParameter("scope");
+				Validator.checkForNull(scope);
+				
+				List<String> scopes= Arrays.asList(scope.split(" "));
+				if(Helper.hasOIDCScopes(scopes))
+				{
+					String idToken= generateIdToken(rToken.getUserId(), scopes, clientId);
+					jsonResponse.put("idToken", idToken);
+				}
+			}
+			catch(InvalidException error)
+			{
+				System.out.println("Scopes not present! Sending only access token!");
+			}
+			
+			resp.setStatus(HttpServletResponse.SC_OK);
+			resp.getWriter().write(jsonResponse.toString());
+		}
+		catch(InvalidException | JSONException error)
+		{
+			error.printStackTrace();
+			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			resp.getWriter().write("{\"error\": \"" + "Process interrupted!" + "\"}");
+		}
+	}
+
+	private RefreshToken generateRefreshToken(int userId, int clientRowId, int authId) throws InvalidException
+	{
+		RefreshToken rToken= ObjectBuilder.buildRefreshToken(userId, clientRowId, authId);
+		do
+		{
+			rToken= RefreshTokenOperation.createRTEntry(rToken);					
+		}
+		while(rToken==null);
+		
+		return rToken;
+	}
+	
+	private String generateAccessToken(int rtId, int authId) throws InvalidException
+	{
+		AccessToken aToken= ObjectBuilder.buildAccessToken(rtId, authId);
+		
+		do {
+			aToken= AccessTokenOperation.createATEntry(aToken);
+		}
+		while(aToken==null);
+		
+		return aToken.getAccessToken();
 	}
 	
 	private String generateIdToken(int userId, List<String> scopes, String clientId) throws JSONException, InvalidException
@@ -127,7 +227,7 @@ public class TokenServlet extends HttpServlet
 		payloadJson.put("exp", timeInSec+ 3600);
 		
 		User user= UserOperation.getUser(userId);
-		if(scopes.contains(Scopes.profile.name()))
+		if(scopes.contains(Scopes.PROFILE.getName()))
 		{
 			payloadJson.put("name", user.getName());
 			payloadJson.put("first_name", user.getFirstName());
@@ -135,12 +235,12 @@ public class TokenServlet extends HttpServlet
 			payloadJson.put("gender", user.getGender());			
 		}
 		
-		if(scopes.contains(Scopes.email.name()))
+		if(scopes.contains(Scopes.EMAIL.getName()))
 		{
 			payloadJson.put("email", user.getEmail());			
 		}
 		
-		if(scopes.contains(Scopes.openid.name()))
+		if(scopes.contains(Scopes.OPENID.getName()))
 		{
 			payloadJson.put("sub", Helper.getMD5Hash(userId+""));
 		}
@@ -154,7 +254,7 @@ public class TokenServlet extends HttpServlet
 			PrivateKey pvtKey= KeyConvertor.convertToPrivateKey(key.getPrivateKey());
 			
 			Signature signature= Signature.getInstance("SHA256withRSA");
-			signature.initSign(pvtKey);		
+			signature.initSign(pvtKey);
 			signature.update(data.getBytes(StandardCharsets.UTF_8));
 			
 			String encodedSignature= Base64.getUrlEncoder().withoutPadding().encodeToString(signature.sign());

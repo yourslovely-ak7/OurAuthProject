@@ -48,7 +48,7 @@ public class OurAuth extends HttpServlet
 
 		try
 		{
-			Client client= ClientOperation.validateClient(clientId, redirectUrl);
+			Client client= ClientOperation.validateClientByIdAndUrl(clientId, redirectUrl);
 			Validator.isValidScope(scopes);
 			
 			HttpSession session= req.getSession(false);

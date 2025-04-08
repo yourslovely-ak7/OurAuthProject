@@ -120,7 +120,10 @@ public class UserServlet extends HttpServlet{
 	private void logoutUser(HttpServletRequest req, HttpServletResponse resp) throws IOException, JSONException, InvalidException
 	{
 		HttpSession session= req.getSession(false);
-		session.invalidate();
+		if(session!=null)
+		{
+			session.invalidate();			
+		}
 		
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.sendRedirect("/OurAuth/login.html");

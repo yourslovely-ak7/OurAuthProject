@@ -41,6 +41,15 @@
         <url-pattern>/client</url-pattern>
     </servlet-mapping>
     
+    <servlet>
+        <servlet-name>ResourceServlet</servlet-name>
+        <servlet-class>servlet.ResourceServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ResourceServlet</servlet-name>
+        <url-pattern>/resource</url-pattern>
+    </servlet-mapping>
+    
     <filter>
     	<filter-name>AuthenticationFilter</filter-name>
     	<filter-class>filter.AuthenticationFilter</filter-class>
@@ -49,6 +58,15 @@
     	<filter-name>AuthenticationFilter</filter-name>
     	<url-pattern>/client</url-pattern>
     	<url-pattern>/auth</url-pattern>
+    </filter-mapping>
+    
+	<filter>
+    	<filter-name>AuthorizationFilter</filter-name>
+    	<filter-class>filter.AuthorizationFilter</filter-class>
+    </filter>
+    <filter-mapping>
+    	<filter-name>AuthorizationFilter</filter-name>
+    	<url-pattern>/resource</url-pattern>
     </filter-mapping>
     
 </web-app>

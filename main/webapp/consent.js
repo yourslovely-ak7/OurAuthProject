@@ -34,5 +34,5 @@ function proceed()
 function reject()
 {
 	const url= urlParam.get('redirectUrl');
-	window.location.href= `${url}?error=access declined`;
+	window.location.href= `${url}?error=access_declined`;
 }

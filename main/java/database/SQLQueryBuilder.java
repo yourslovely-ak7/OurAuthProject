@@ -147,7 +147,7 @@ public class SQLQueryBuilder
 		}
 	}
 
-	public <T> int update(List<Fields<T>> newValues, List<Join> join, Map<Integer,Condition> conditions) throws ClassNotFoundException, InvalidException
+	public <T> int update(List<Fields<T>> newValues, List<Join> join, Map<Integer,Condition> conditions) throws ClassNotFoundException, InvalidException, ConstraintViolationException
 	{
 		try
 		{
@@ -178,6 +178,11 @@ public class SQLQueryBuilder
 			System.out.println("Query before replacing placeholders : "+queryBuilder);
 			
 			return QueryExecutor.executeUpdateAndDelete(queryType, queryBuilder, conditions, newValues);
+		}
+		catch(SQLIntegrityConstraintViolationException error)
+		{
+			System.out.println("Query Layer : " + error.getMessage());
+			throw new ConstraintViolationException(error.getMessage(), error);
 		}
 		catch(SQLException | InvalidException error)
 		{

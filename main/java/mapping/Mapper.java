@@ -139,7 +139,7 @@ public class Mapper {
 		}
 	}
 
-	public <T> int update(List<T> objects, Map<Integer, Condition> condition) throws InvalidException {
+	public <T> int update(List<T> objects, Map<Integer, Condition> condition) throws InvalidException, ConstraintViolationException {
 		try {
 			int length = objects.size();
 			List<String> allTables = objects.stream().map(obj -> yaml.getTableName(obj.getClass().getSimpleName()))

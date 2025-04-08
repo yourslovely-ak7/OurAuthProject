@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import exception.InvalidException;
 import pojo.Condition;
 import pojo.Order;
+import pojo.Scopes;
 
 public class Helper {
 	
@@ -194,5 +195,12 @@ public class Helper {
 			.append(getMD5Hash(getRandomString()));
 			
 			return sb.toString();
+	}
+	
+	public static boolean hasOIDCScopes(List<String> scopes)
+	{
+		return (scopes.contains(Scopes.EMAIL.getName()) 
+				|| scopes.contains(Scopes.PROFILE.getName()) 
+				|| scopes.contains(Scopes.OPENID.getName()));
 	}
 }

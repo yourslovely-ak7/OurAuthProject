@@ -80,15 +80,10 @@ public class ClientOperation {
 		return Helper.getMD5Hash(url);
 	}
 	
-	public static Client validateClient(String clientId, String redirectUrl) throws InvalidException
+	public static Client validateClientByIdAndUrl(String clientId, String redirectUrl) throws InvalidException
 	{
 		Validator.checkForNull(clientId, "clientId");
 		Validator.checkForNull(redirectUrl, "redirectUrl");
-		
-		Client newClient= new Client();
-		List<String> requiredFields= Helper.getAllFields(pojo);
-		Map<Client, List<String>> objects= new HashMap<Client, List<String>>();
-		objects.put(newClient, requiredFields);
 		
 		Map<Integer, Condition> conditions= new HashMap<Integer, Condition>();
 		Condition newCondition= Helper.prepareCondition(tableName, "clientId", " = ", clientId, "");
@@ -96,6 +91,27 @@ public class ClientOperation {
 		
 		newCondition= Helper.prepareCondition(tableName, "redirectUrl", " = ", redirectUrl, "AND");
 		conditions.put(2, newCondition);
+		
+		return getClient(conditions);
+	}
+	
+	public static Client validateClientById(String clientId) throws InvalidException
+	{
+		Validator.checkForNull(clientId, "clientId");
+		
+		Map<Integer, Condition> conditions= new HashMap<Integer, Condition>();
+		Condition newCondition= Helper.prepareCondition(tableName, "clientId", " = ", clientId, "");
+		conditions.put(1, newCondition);
+		
+		return getClient(conditions);
+	}
+	
+	private static Client getClient(Map<Integer,Condition> conditions) throws InvalidException
+	{
+		Client newClient= new Client();
+		List<String> requiredFields= Helper.getAllFields(pojo);
+		Map<Client, List<String>> objects= new HashMap<Client, List<String>>();
+		objects.put(newClient, requiredFields);
 		
 		Order order= new Order();
 		

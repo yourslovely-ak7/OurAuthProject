@@ -1,11 +1,36 @@
 package helper;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import exception.InvalidException;
 import pojo.Scopes;
 
 public class Validator {
 	
-	private static Class<Scopes> enumClass= Scopes.class;
+	private static final Set<String> scopeSet= Arrays.stream(Scopes.values()).map(Scopes::getName).collect(Collectors.toSet());
+	private static final String apiScopesPath= "/scopes.json";
+	private static JSONObject apiScopes= null;
+	
+	static 
+	{
+		try(InputStream scopesStream= Validator.class.getClassLoader().getResourceAsStream(apiScopesPath);
+				Scanner sc= new Scanner(scopesStream, "UTF-8"))
+		{
+			String data= sc.useDelimiter("\\A").next();
+			apiScopes= new JSONObject(data);
+		}
+		catch (IOException | JSONException e) {
+			e.printStackTrace();
+		}		
+	}
 	
 	public static void checkForNull(Object obj) throws InvalidException
 	{
@@ -33,18 +58,18 @@ public class Validator {
 	
 	public static boolean isValidScope(String scopes[]) throws InvalidException
 	{
-		try
+		for(String iter: scopes)
 		{
-			for(String iter: scopes)
+			if(!scopeSet.contains(iter))
 			{
-				Enum.valueOf(enumClass, iter);
+				throw new InvalidException("Invalid Scope identified: "+iter);				
 			}
-			return true;
 		}
-		catch(IllegalArgumentException error)
-		{
-			System.out.println(error.getMessage());
-			throw new InvalidException("Invalid Scope identified!");
-		}
+		return true;
+	}
+
+	public static JSONObject getApiScopes()
+	{
+		return apiScopes;
 	}
 }

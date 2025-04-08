@@ -1,0 +1,8 @@
+{
+	"scopes": [
+				{
+					"path": "/OurAuth/resource",
+					"requirement": ["RESOURCE.read"]
+				}
+	]
+}

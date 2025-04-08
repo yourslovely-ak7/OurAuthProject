@@ -2,13 +2,21 @@ package pojo;
 
 public enum Scopes {
 
-	profile,
-	email,
-	openid;
+	PROFILE("profile"),
+	EMAIL("email"),
+	OPENID("openid"),
+	RESOURCE_ALL("RESOURCE.all"),
+	RESOURCE_READ("RESOURCE.read");
 	
-	@Override
-	public String toString()
+	private String name;
+	
+	Scopes(String name)
 	{
-		return name();
+		this.name= name;
+	}
+	
+	public String getName()
+	{
+		return name;
 	}
 }
