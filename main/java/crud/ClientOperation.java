@@ -82,8 +82,8 @@ public class ClientOperation {
 	
 	public static Client validateClientByIdAndUrl(String clientId, String redirectUrl) throws InvalidException
 	{
-		Validator.checkForNull(clientId, "clientId");
-		Validator.checkForNull(redirectUrl, "redirectUrl");
+		Validator.checkForNull(clientId, "Client");
+		Validator.checkForNull(redirectUrl, "Redirect Uri");
 		
 		Map<Integer, Condition> conditions= new HashMap<Integer, Condition>();
 		Condition newCondition= Helper.prepareCondition(tableName, "clientId", " = ", clientId, "");

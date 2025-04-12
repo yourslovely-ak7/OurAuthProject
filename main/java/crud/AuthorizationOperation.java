@@ -1,5 +1,6 @@
 package crud;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,11 +13,12 @@ import mapping.Mapper;
 import pojo.Authorization;
 import pojo.Condition;
 import pojo.Order;
+import pojo.Status;
 
 public class AuthorizationOperation 
 {
 	private static final String tableName= "Authorization";
-//	private static final String pk= "authId";
+	private static final String pk= "authId";
 	private static final Class<Authorization> pojo= Authorization.class;
 	private static Mapper newMap= new Mapper();
 	
@@ -54,9 +56,34 @@ public class AuthorizationOperation
 		Condition newCondition= Helper.prepareCondition(tableName, "authCode", " = ", authCode, "");
 		conditions.put(1, newCondition);
 		
+		newCondition= Helper.prepareCondition(tableName, "status", " = ", Status.ACTIVE.name(), "AND");
+		conditions.put(2, newCondition);
+		
 		Order order= new Order();
 		
 		return Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);
 	}
 
+	public static boolean deactivateToken(int authId) throws InvalidException
+	{
+		try
+		{
+			Authorization auth= new Authorization();
+			auth.setStatus(Status.INACTIVE.name());
+			
+			List<Object> objects= new ArrayList<>();
+			objects.add(auth);
+			
+			Map<Integer, Condition> conditions= new HashMap<Integer, Condition>();
+			Condition newCondition= Helper.prepareCondition(tableName, pk, " = ", authId, "");
+			conditions.put(1, newCondition);
+			
+			return newMap.update(objects, conditions) == 1;
+		}
+		catch(ConstraintViolationException error)
+		{
+			System.out.println("No handling required for this method...");
+			return false;
+		}
+	}
 }

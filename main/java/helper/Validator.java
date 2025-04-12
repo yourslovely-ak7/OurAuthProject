@@ -72,4 +72,15 @@ public class Validator {
 	{
 		return apiScopes;
 	}
+	
+	public static boolean isExpired(long time) throws InvalidException
+	{
+		long inSec= time/1000, currentTimeInSec= System.currentTimeMillis()/1000;
+		
+		if(inSec > currentTimeInSec)
+		{
+			throw new InvalidException("Code / Token expired!");
+		}
+		return true;
+	}
 }

@@ -45,7 +45,7 @@ public class TokenServlet extends HttpServlet
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		
-		String type= req.getParameter("responseType");
+		String type= req.getParameter("response_type");
 		System.out.println("Token request received for "+type);
 
 		switch(type)
@@ -62,9 +62,9 @@ public class TokenServlet extends HttpServlet
 	
 	private void getTokens(HttpServletRequest req, HttpServletResponse resp) throws IOException
 	{
-		String clientId= req.getParameter("clientId");
-		String clientSecret= req.getParameter("clientSecret");
-		String redirectUrl= req.getParameter("redirectUrl");
+		String clientId= req.getParameter("client_id");
+		String clientSecret= req.getParameter("client_secret");
+		String redirectUrl= req.getParameter("redirect_uri");
 		String code= req.getParameter("code");
 		
 		try
@@ -81,8 +81,22 @@ public class TokenServlet extends HttpServlet
 				resp.getWriter().write("{\"error\": \"" + "Invalid client!" + "\"}");
 			}
 			
-			Authorization auth= AuthorizationOperation.getAuthorization(code);
+			Authorization auth=null;
+			try
+			{
+				auth= AuthorizationOperation.getAuthorization(code);
+				Validator.isExpired(auth.getCreatedTime());
+			}
+			catch(InvalidException error)
+			{
+				System.out.println(error.getMessage());
+				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				resp.getWriter().write("{\"error\": \"" + "Invalid code!" + "\"}");
+			}
+			
 			Validator.checkForNull(client);
+			Validator.checkForNull(auth);
+			AuthorizationOperation.deactivateToken(auth.getAuthId());
 			
 			if(client.getClientSecret().equals(clientSecret))
 			{
@@ -94,9 +108,9 @@ public class TokenServlet extends HttpServlet
 				RefreshToken rToken= generateRefreshToken(userId, clientRowId, authId);
 				String aToken= generateAccessToken(rToken.getRefreshTokenId(), authId);
 				
-				response.put("refreshToken", rToken.getRefreshToken());
-				response.put("accessToken", aToken);
-				response.put("expiresIn", 3600);
+				response.put("refresh_token", rToken.getRefreshToken());
+				response.put("access_token", aToken);
+				response.put("expires_in", 3600);
 				
 				List<String> scopes= ScopeOperation.getScopes(authId);
 				System.out.println("Scopes granted: "+scopes);
@@ -104,7 +118,7 @@ public class TokenServlet extends HttpServlet
 				if(Helper.hasOIDCScopes(scopes))
 				{
 					String idToken= generateIdToken(userId, scopes, clientId);
-					response.put("idToken", idToken);
+					response.put("id_token", idToken);
 				}
 
 				resp.setStatus(HttpServletResponse.SC_OK);
@@ -120,9 +134,9 @@ public class TokenServlet extends HttpServlet
 
 	private void refreshToken(HttpServletRequest req, HttpServletResponse resp) throws IOException
 	{
-		String clientId= req.getParameter("clientId");
-		String clientSecret= req.getParameter("clientSecret");
-		String refreshToken= req.getParameter("refreshToken");
+		String clientId= req.getParameter("client_id");
+		String clientSecret= req.getParameter("client_secret");
+		String refreshToken= req.getParameter("refresh_token");
 		
 		Client client=null;
 		try
@@ -154,26 +168,26 @@ public class TokenServlet extends HttpServlet
 			while(token==null);
 			
 			JSONObject jsonResponse= new JSONObject();
-			jsonResponse.put("refreshToken", token);
-			jsonResponse.put("accessToken", aToken);
-			
+			jsonResponse.put("refresh_token", token);
+			jsonResponse.put("access_token", aToken);
+
 			try
 			{
 				String scope= req.getParameter("scope");
 				Validator.checkForNull(scope);
-				
+
 				List<String> scopes= Arrays.asList(scope.split(" "));
 				if(Helper.hasOIDCScopes(scopes))
 				{
 					String idToken= generateIdToken(rToken.getUserId(), scopes, clientId);
-					jsonResponse.put("idToken", idToken);
+					jsonResponse.put("id_token", idToken);
 				}
 			}
 			catch(InvalidException error)
 			{
 				System.out.println("Scopes not present! Sending only access token!");
 			}
-			
+
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.getWriter().write(jsonResponse.toString());
 		}
@@ -193,10 +207,10 @@ public class TokenServlet extends HttpServlet
 			rToken= RefreshTokenOperation.createRTEntry(rToken);					
 		}
 		while(rToken==null);
-		
+
 		return rToken;
 	}
-	
+
 	private String generateAccessToken(int rtId, int authId) throws InvalidException
 	{
 		AccessToken aToken= ObjectBuilder.buildAccessToken(rtId, authId);
@@ -205,10 +219,10 @@ public class TokenServlet extends HttpServlet
 			aToken= AccessTokenOperation.createATEntry(aToken);
 		}
 		while(aToken==null);
-		
+
 		return aToken.getAccessToken();
 	}
-	
+
 	private String generateIdToken(int userId, List<String> scopes, String clientId) throws JSONException, InvalidException
 	{
 		String kid= "f2d5ae4a1e67329f5aec223b7544d3dc";
@@ -217,7 +231,7 @@ public class TokenServlet extends HttpServlet
 		headerJson.put("alg", "RS256");
 		headerJson.put("typ", "JWT");
 		headerJson.put("kid", kid);
-		
+
 		long timeInSec= System.currentTimeMillis()/1000;
 		JSONObject payloadJson = new JSONObject();
 		payloadJson.put("aud", clientId);
