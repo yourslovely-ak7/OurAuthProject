@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import builder.ObjectBuilder;
 import crud.UserOperation;
+import exception.InternalException;
 import exception.InvalidException;
 import helper.Helper;
 import pojo.User;
@@ -41,7 +42,7 @@ public class UserServlet extends HttpServlet{
 				break;
 			}			
 		}
-		catch(JSONException | InvalidException error)
+		catch(JSONException | InvalidException | InternalException error)
 		{
 			error.printStackTrace();
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -68,7 +69,7 @@ public class UserServlet extends HttpServlet{
 		}
 	}
 	
-	private void signUpUser(HttpServletRequest req, HttpServletResponse resp) throws IOException, JSONException, InvalidException
+	private void signUpUser(HttpServletRequest req, HttpServletResponse resp) throws IOException, JSONException, InternalException, InvalidException
 	{
 		JSONObject requestBody= Helper.getJsonRequest(req);
 		
@@ -86,7 +87,7 @@ public class UserServlet extends HttpServlet{
 		}
 	}
 	
-	private void loginUser(HttpServletRequest req, HttpServletResponse resp) throws IOException, JSONException, InvalidException
+	private void loginUser(HttpServletRequest req, HttpServletResponse resp) throws IOException, JSONException, InternalException, InvalidException
 	{
 		JSONObject requestBody= Helper.getJsonRequest(req);
 		

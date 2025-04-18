@@ -6,7 +6,7 @@ public class Client {
 	private String clientName;
 	private String clientId;
 	private String clientSecret;
-	private String redirectUrl;
+//	private String redirectUrl;
 	private int createdBy;
 	
 	public int getClientRowId() {
@@ -21,9 +21,9 @@ public class Client {
 	public String getClientSecret() {
 		return clientSecret;
 	}
-	public String getRedirectUrl() {
-		return redirectUrl;
-	}
+//	public String getRedirectUrl() {
+//		return redirectUrl;
+//	}
 	public int getCreatedBy() {
 		return createdBy;
 	}
@@ -43,10 +43,10 @@ public class Client {
 		this.clientSecret = clientSecret;
 		return this;
 	}
-	public Client setRedirectUrl(String redirectUrl) {
-		this.redirectUrl = redirectUrl;
-		return this;
-	}
+//	public Client setRedirectUrl(String redirectUrl) {
+//		this.redirectUrl = redirectUrl;
+//		return this;
+//	}
 	public Client setCreatedBy(int createdBy) {
 		this.createdBy = createdBy;
 		return this;

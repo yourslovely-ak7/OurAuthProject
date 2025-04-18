@@ -11,7 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import crud.KeyOperation;
-import exception.InvalidException;
+import exception.InternalException;
 import pojo.Key;
 
 public class KeyGenerator 
@@ -58,7 +58,7 @@ public class KeyGenerator
 	        {
 	        	KeyOperation.createKeyEntry(newKey);
 	        }
-	        catch(InvalidException error)
+	        catch(InternalException error)
 	        {
 	        	error.printStackTrace();
 	        }

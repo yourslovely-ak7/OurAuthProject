@@ -1,10 +1,12 @@
 package crud;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import exception.ConstraintViolationException;
+import exception.InternalException;
 import exception.InvalidException;
 import helper.Helper;
 import helper.Validator;
@@ -17,11 +19,11 @@ import pojo.Status;
 public class AccessTokenOperation {
 
 	private static final String tableName= "AccessToken";
-//	private static final String pk= "accessTokenId";
+	private static final String pk= "accessTokenId";
 	private static final Class<AccessToken> pojo= AccessToken.class;
 	private static Mapper newMap= new Mapper();
 	
-	public static AccessToken createATEntry(AccessToken token) throws InvalidException
+	public static AccessToken createATEntry(AccessToken token) throws InternalException
 	{
 		try
 		{
@@ -43,20 +45,57 @@ public class AccessTokenOperation {
 		}
 	}
 	
-	public static AccessToken getAT(String aToken) throws InvalidException
+	public static AccessToken getAT(String aToken) throws InternalException, InvalidException
 	{
-		Validator.checkForNull(aToken);
+		try
+		{
+			Validator.checkForNull(aToken);
+			
+			AccessToken token= new AccessToken();
+			Map<AccessToken, List<String>> objects= new HashMap<>();
+			objects.put(token, Helper.getAllFields(pojo));
+			
+			Map<Integer, Condition> conditions= new HashMap<>();
+			Condition newCondition= Helper.prepareCondition(tableName, "accessToken", " = ", aToken, "");
+			conditions.put(1, newCondition);
+			
+			Order order= new Order();
+			
+			return Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);			
+		}
+		catch(InternalException error)
+		{
+			throw new InternalException("invalid_token", error);
+		}
+	}
+	
+	public static boolean deactivateAT(int atId) throws InternalException
+	{
+		try
+		{
+			AccessToken token= new AccessToken();
+			
+			token.setStatus(Status.INACTIVE.name());
 
-		AccessToken token= new AccessToken();
-		Map<AccessToken, List<String>> objects= new HashMap<>();
-		objects.put(token, Helper.getAllFields(pojo));
-
-		Map<Integer, Condition> conditions= new HashMap<>();
-		Condition newCondition= Helper.prepareCondition(tableName, "accessToken", " = ", aToken, "");
-		conditions.put(1, newCondition);
-
-		Order order= new Order();
-
-		return Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);
+			List<Object> objects= new ArrayList<>();
+			objects.add(token);
+			
+			Map<Integer, Condition> conditions= new HashMap<>();
+			Condition newCondition= Helper.prepareCondition(tableName, pk, " = ", atId, "");
+			conditions.put(1, newCondition);
+			
+			int result= newMap.update(objects, conditions);
+			if (result != 1) {
+				return false;
+			} else {
+				System.out.println("Message: AccessToken deactivated!");
+				return true ;
+			}
+		}
+		catch (ConstraintViolationException error) 
+		{
+			System.out.println("No handling needed for this exception...");
+			return false;
+		}
 	}
 }

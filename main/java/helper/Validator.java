@@ -3,6 +3,8 @@ package helper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -10,6 +12,7 @@ import java.util.stream.Collectors;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import exception.InternalException;
 import exception.InvalidException;
 import pojo.Scopes;
 
@@ -32,7 +35,15 @@ public class Validator {
 		}		
 	}
 	
-	public static void checkForNull(Object obj) throws InvalidException
+	public static void checkForNull(Object obj) throws InternalException
+	{
+		if(obj== null)
+		{
+			throw new InternalException("Value cannot be null!");
+		}
+	}
+	
+	public static void validate(Object obj) throws InvalidException
 	{
 		if(obj== null)
 		{
@@ -40,19 +51,27 @@ public class Validator {
 		}
 	}
 	
-	public static void checkForNull(Object obj, String name) throws InvalidException
+	public static void checkForNull(Object obj, String message) throws InternalException
 	{
 		if(obj== null)
 		{
-			throw new InvalidException(name+" is invalid!");
+			throw new InternalException("Invalid "+ message);
 		}
 	}
 	
-	public static void checkForZero(long value, String name) throws InvalidException
+	public static void validate(Object obj, String message) throws InvalidException
+	{
+		if(obj== null)
+		{
+			throw new InvalidException("invalid_"+ message);
+		}
+	}
+	
+	public static void checkForZero(long value, String name) throws InternalException
 	{
 		if(value== 0)
 		{
-			throw new InvalidException(name+" cannot be ZERO!");
+			throw new InternalException(name+" cannot be ZERO!");
 		}
 	}
 	
@@ -62,25 +81,34 @@ public class Validator {
 		{
 			if(!scopeSet.contains(iter))
 			{
-				throw new InvalidException("Invalid Scope identified: "+iter);				
+				System.out.println("Invalid Scope identified: "+iter);
+				throw new InvalidException("invalid_scope");
 			}
 		}
 		return true;
 	}
-
+	
 	public static JSONObject getApiScopes()
 	{
 		return apiScopes;
 	}
 	
-	public static boolean isExpired(long time) throws InvalidException
+	public static boolean isExpired(long time, String type) throws InvalidException
 	{
 		long inSec= time/1000, currentTimeInSec= System.currentTimeMillis()/1000;
 		
 		if(inSec > currentTimeInSec)
 		{
-			throw new InvalidException("Code / Token expired!");
+			throw new InvalidException(type+"_expired!");
 		}
 		return true;
+	}
+	
+	public static boolean isEqual(List<String> list1, List<String> list2)
+	{
+		Collections.sort(list1);
+		Collections.sort(list2);
+		
+		return list1.equals(list2);
 	}
 }

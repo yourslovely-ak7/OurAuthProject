@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import exception.InvalidException;
+import exception.InternalException;
 import helper.Helper;
 import helper.Validator;
 import pojo.Condition;
@@ -21,7 +21,7 @@ import pojo.Fields;
 
 public class QueryExecutor 
 {
-	public static long executeInsert(StringBuilder queryBuilder, Map<String, Object> fieldsAndValues, boolean returnGeneratedKey) throws SQLException, InvalidException
+	public static long executeInsert(StringBuilder queryBuilder, Map<String, Object> fieldsAndValues, boolean returnGeneratedKey) throws SQLException, InternalException
 	{
 		try (Connection connection = DatabaseConnection.getConnection();
 				PreparedStatement statement = connection.prepareStatement(queryBuilder.toString(),
@@ -48,7 +48,7 @@ public class QueryExecutor
 		}
 	}
 	
-	public static <T> long executeInsertBatch(StringBuilder queryBuilder, Fields<T> fields) throws SQLException, InvalidException
+	public static <T> long executeInsertBatch(StringBuilder queryBuilder, Fields<T> fields) throws SQLException, InternalException
 	{
 		try (Connection connection = DatabaseConnection.getConnection();
 				PreparedStatement statement = connection.prepareStatement(queryBuilder.toString()))
@@ -87,11 +87,11 @@ public class QueryExecutor
 		catch(InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException error)
 		{
 			System.out.println(error.getMessage());
-			throw new InvalidException("Error while executing Batch insertion", error);
+			throw new InternalException("Error while executing Batch insertion", error);
 		}
 	}
 	
-	public static List<Map<String,Object>> executeSelect(String queryType, StringBuilder queryBuilder, Map<Integer,Condition> conditions) throws InvalidException, SQLException
+	public static List<Map<String,Object>> executeSelect(String queryType, StringBuilder queryBuilder, Map<Integer,Condition> conditions) throws InternalException, SQLException
 	{
 		try(Connection connection= DatabaseConnection.getConnection();
 				PreparedStatement statement= prepareStatement(queryType, connection, queryBuilder.toString(), null, conditions))
@@ -104,7 +104,7 @@ public class QueryExecutor
 		}
 	}
 
-	public static int executeCount(String queryType, StringBuilder queryBuilder, Map<Integer,Condition> conditions) throws SQLException, InvalidException
+	public static int executeCount(String queryType, StringBuilder queryBuilder, Map<Integer,Condition> conditions) throws SQLException, InternalException
 	{
 		try(Connection connection= DatabaseConnection.getConnection();
 				PreparedStatement statement= prepareStatement(queryType, connection, queryBuilder.toString(), null, conditions))
@@ -122,7 +122,7 @@ public class QueryExecutor
 		}
 	}
 	
-	public static <T> int executeUpdateAndDelete(String queryType, StringBuilder queryBuilder, Map<Integer,Condition> conditions, List<Fields<T>> newValues) throws SQLException, InvalidException
+	public static <T> int executeUpdateAndDelete(String queryType, StringBuilder queryBuilder, Map<Integer,Condition> conditions, List<Fields<T>> newValues) throws SQLException, InternalException
 	{
 		try(Connection connection= DatabaseConnection.getConnection();
 				PreparedStatement statement= prepareStatement(queryType, connection, queryBuilder.toString(), newValues, conditions))
@@ -133,7 +133,7 @@ public class QueryExecutor
 		}
 	}
 	
-	private static <T> PreparedStatement prepareStatement(String queryType, Connection connection, String query, List<Fields<T>> newValues, Map<Integer,Condition> conditions) throws SQLException, InvalidException 
+	private static <T> PreparedStatement prepareStatement(String queryType, Connection connection, String query, List<Fields<T>> newValues, Map<Integer,Condition> conditions) throws SQLException, InternalException 
 	{
 		Validator.checkForNull(queryType);
 		Validator.checkForNull(connection);
@@ -172,7 +172,7 @@ public class QueryExecutor
 		return statement;
 	}
 	
-	private static List<Map<String,Object>> resultSetConversion(ResultSet result) throws SQLException, InvalidException
+	private static List<Map<String,Object>> resultSetConversion(ResultSet result) throws SQLException, InternalException
 	{
 		Validator.checkForNull(result);
 		

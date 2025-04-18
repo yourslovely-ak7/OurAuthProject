@@ -11,7 +11,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import exception.InvalidException;
 import helper.Helper;
+import helper.Validator;
 
 public class AuthenticationFilter implements Filter{
 	
@@ -25,14 +27,30 @@ public class AuthenticationFilter implements Filter{
 		String path= Helper.getPath(req);
 		System.out.println("Filter invoked for: "+path);
 		
+		//Check for active session.
 		HttpSession session= req.getSession(false);
-		if(session==null)
+		if(session==null && !checkForGrantType(req))
 		{
 			resp.sendRedirect("/OurAuth/login.html?serviceUrl="+path);
 		}
 		else
 		{
 			chain.doFilter(req, resp);
+		}
+	}
+	
+	private static boolean checkForGrantType(HttpServletRequest req)
+	{
+		String grantType= req.getParameter("grant_type");
+		try
+		{
+			Validator.validate(grantType);
+			return grantType.equals("client_credentials");
+		}
+		catch(InvalidException error)
+		{
+			System.out.println("Filter shouldn't be skipped.");
+			return false;
 		}
 	}
 }

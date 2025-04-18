@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import exception.ConstraintViolationException;
-import exception.InvalidException;
+import exception.InternalException;
 import helper.Validator;
 import pojo.Condition;
 import pojo.Fields;
@@ -15,7 +15,7 @@ import pojo.Order;
 
 public class SQLQueryBuilder 
 {	
-	public <T> long insert(String tableName, Fields<T> fields, boolean returnGeneratedKey, boolean isBatchOpt) throws InvalidException, ClassNotFoundException, ConstraintViolationException
+	public <T> long insert(String tableName, Fields<T> fields, boolean returnGeneratedKey, boolean isBatchOpt) throws InternalException, ClassNotFoundException, ConstraintViolationException
 	{
 		try {
 			Validator.checkForNull(tableName);
@@ -62,13 +62,13 @@ public class SQLQueryBuilder
 			System.out.println("Query Layer : " + error.getMessage());
 			throw new ConstraintViolationException(error.getMessage(), error);
 		}
-		catch (SQLException | InvalidException error) {
+		catch (SQLException | InternalException error) {
 			System.out.println("Query Layer : " + error.getMessage());
-			throw new InvalidException("Error occurred while inserting record!", error);
+			throw new InternalException("Error occurred while inserting record!", error);
 		}
 	}
 	
-	public <T> List<Map<String,Object>> select(List<Fields<T>> fields, List<Join> join, Map<Integer,Condition> conditions, Order order) throws InvalidException, ClassNotFoundException
+	public <T> List<Map<String,Object>> select(List<Fields<T>> fields, List<Join> join, Map<Integer,Condition> conditions, Order order) throws InternalException, ClassNotFoundException
 	{
 		try
 		{
@@ -102,14 +102,14 @@ public class SQLQueryBuilder
 			
 			return QueryExecutor.executeSelect(queryType, queryBuilder, conditions);
 		}
-		catch(SQLException | InvalidException error)
+		catch(SQLException | InternalException error)
 		{
 			System.out.println("Query Layer : "+error.getMessage());
-			throw new InvalidException("Error occurred while fetching records!",error);
+			throw new InternalException("Error occurred while fetching records!",error);
 		}
 	}
 	
-	public int selectCount(String tableName, List<Join> join, Map<Integer,Condition> conditions) throws ClassNotFoundException, InvalidException
+	public int selectCount(String tableName, List<Join> join, Map<Integer,Condition> conditions) throws ClassNotFoundException, InternalException
 	{
 		try
 		{
@@ -140,14 +140,14 @@ public class SQLQueryBuilder
 			
 			return QueryExecutor.executeCount(queryType, queryBuilder, conditions);
 		}
-		catch(SQLException | InvalidException error)
+		catch(SQLException | InternalException error)
 		{
 			System.out.println("Query Layer : "+error.getMessage());
-			throw new InvalidException("Error occurred while fetching count!", error);
+			throw new InternalException("Error occurred while fetching count!", error);
 		}
 	}
 
-	public <T> int update(List<Fields<T>> newValues, List<Join> join, Map<Integer,Condition> conditions) throws ClassNotFoundException, InvalidException, ConstraintViolationException
+	public <T> int update(List<Fields<T>> newValues, List<Join> join, Map<Integer,Condition> conditions) throws ClassNotFoundException, InternalException, ConstraintViolationException
 	{
 		try
 		{
@@ -184,14 +184,14 @@ public class SQLQueryBuilder
 			System.out.println("Query Layer : " + error.getMessage());
 			throw new ConstraintViolationException(error.getMessage(), error);
 		}
-		catch(SQLException | InvalidException error)
+		catch(SQLException | InternalException error)
 		{
 			System.out.println("Query Layer : "+error.getMessage());
-			throw new InvalidException("Error occurred while updating records!",error);
+			throw new InternalException("Error occurred while updating records!",error);
 		}
 	}
 
-	public int delete(String tableName, Map<Integer,Condition> conditions) throws InvalidException, ClassNotFoundException
+	public int delete(String tableName, Map<Integer,Condition> conditions) throws InternalException, ClassNotFoundException
 	{
 		try
 		{
@@ -214,10 +214,10 @@ public class SQLQueryBuilder
 			
 			return QueryExecutor.executeUpdateAndDelete(queryType, queryBuilder, conditions, null);
 		}
-		catch(SQLException | InvalidException error)
+		catch(SQLException | InternalException error)
 		{
 			System.out.println("Query Layer : "+error.getMessage());
-			throw new InvalidException("Error occurred while removing records!", error);
+			throw new InternalException("Error occurred while removing records!", error);
 		}
 	}
 

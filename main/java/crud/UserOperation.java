@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import exception.ConstraintViolationException;
+import exception.InternalException;
 import exception.InvalidException;
 import helper.Helper;
 import mapping.Mapper;
@@ -19,7 +20,7 @@ public class UserOperation {
 	private static final Class<User> pojo= User.class;
 	private static Mapper newMap= new Mapper();
 	
-	public static int addUser(User user) throws InvalidException
+	public static int addUser(User user) throws InternalException
 	{
 		try
 		{
@@ -27,11 +28,11 @@ public class UserOperation {
 		}
 		catch(ConstraintViolationException error)
 		{
-			throw new InvalidException("Error due to violation of Unique Constraint", error);
+			throw new InternalException("Error due to violation of Unique Constraint", error);
 		}
 	}
 	
-	public static User getUser(String email) throws InvalidException
+	public static User getUser(String email) throws InternalException, InvalidException
 	{
 		Map<User,List<String>> objects= new HashMap<User, List<String>>();
 		User user= new User();
@@ -47,7 +48,7 @@ public class UserOperation {
 		return Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);
 	}
 	
-	public static User getUser(int userId) throws InvalidException
+	public static User getUser(int userId) throws InternalException, InvalidException
 	{
 		Map<User,List<String>> objects= new HashMap<User, List<String>>();
 		User user= new User();

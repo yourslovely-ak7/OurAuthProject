@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+	<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -12,8 +12,11 @@
 				<label>Client Name</label>
 				<input type="text" name="name" id="name">
 				<br/>
+				<div id="uriDiv">
 				<label>Redirect Url</label>
 				<input type="url" id="url">
+				<button type="button" onclick="appendField()">Add URI</button>
+				</div>
 				<br/>
 			</form>
 			<button onclick="registerClient()">REGISTER</button>

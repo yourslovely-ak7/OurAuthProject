@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import exception.ConstraintViolationException;
+import exception.InternalException;
 import exception.InvalidException;
 import helper.Helper;
 import mapping.Mapper;
@@ -17,7 +18,7 @@ public class KeyOperation {
 	private static Mapper newMap= new Mapper();
 	private static final Class<Key> pojo= Key.class;
 	
-	public static void createKeyEntry(Key key) throws InvalidException
+	public static void createKeyEntry(Key key) throws InternalException
 	{
 		try
 		{
@@ -26,11 +27,11 @@ public class KeyOperation {
 		catch(ConstraintViolationException error)
 		{
 			System.out.println(error.getMessage());
-			throw new InvalidException("No handling for this case.", error);
+			throw new InternalException("No handling for this case.", error);
 		}
 	}
 	
-	public static Key getKey(String keyId) throws InvalidException
+	public static Key getKey(String keyId) throws InternalException, InvalidException
 	{
 		Key key= new Key();
 		List<String> requiredFields= Helper.getAllFields(pojo);

@@ -17,6 +17,7 @@ import org.json.JSONObject;
 
 import crud.AccessTokenOperation;
 import crud.ScopeOperation;
+import exception.InternalException;
 import exception.InvalidException;
 import helper.Validator;
 import pojo.AccessToken;
@@ -37,7 +38,7 @@ public class AuthorizationFilter implements Filter{
 			
 			if(!authToken.startsWith("Bearer"))
 			{
-				throw new InvalidException("Invalid token type!");
+				throw new InternalException("invalid_token_type!");
 			}
 			
 			String aToken= authToken.split(" ")[1];
@@ -46,32 +47,38 @@ public class AuthorizationFilter implements Filter{
 //			long expiryTime= (token.getCreatedTime()/1000)+60;		//For verification.
 			if(expiryTime < System.currentTimeMillis()/1000)
 			{
-				throw new InvalidException("token_expired");
+				AccessTokenOperation.deactivateAT(token.getAccessTokenId());
+				throw new InternalException("token_expired");
 			}
 			
 			String endPoint= req.getRequestURI();
 			System.out.println("Resource request received for: "+endPoint);
 			
-			if(hasAuthority(endPoint, token.getAuthId()))
+			if(hasAuthority(endPoint, token.getAuthId(), token.getAccessTokenId()))
 			{
 				System.out.println("Successfully passed Authorization filter!");
 				chain.doFilter(req, resp);
 			}
 			else
 			{
-				throw new InvalidException("no_access");
+				throw new InternalException("no_access");
 			}
 		}
 		catch(InvalidException error)
 		{
 			error.printStackTrace();
-//			resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			resp.getWriter().write("{\"error\": \"" + error.getMessage() + "\"}");
+		}
+		catch(InternalException error)
+		{
+			error.printStackTrace();
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 
 	}
 	
-	private static boolean hasAuthority(String endPoint, int authId) throws InvalidException
+	private static boolean hasAuthority(String endPoint, int authId, int atId) throws InternalException, InvalidException
 	{
 		System.out.println("Endpoint: "+endPoint);
 		try
@@ -89,10 +96,9 @@ public class AuthorizationFilter implements Filter{
 					requiredScopes= iter.getJSONArray("requirement");
 					break;
 				}
-				
 			}
 			
-			List<String> providedScopes= ScopeOperation.getScopes(authId);
+			List<String> providedScopes= ScopeOperation.getScopes(authId, atId);
 			System.out.println("Provided Scopes: "+ providedScopes);
 			
 			Validator.checkForNull(requiredScopes);
@@ -124,7 +130,7 @@ public class AuthorizationFilter implements Filter{
 		catch(JSONException error)
 		{
 			System.out.println(error.getMessage());
-			throw new InvalidException("Error while checking authority.", error);
+			throw new InternalException("Error while checking authority.", error);
 		}
 	}
 

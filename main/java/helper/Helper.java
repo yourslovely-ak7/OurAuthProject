@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import exception.InternalException;
 import exception.InvalidException;
 import pojo.Condition;
 import pojo.Order;
@@ -82,7 +83,7 @@ public class Helper {
 	
 	public static <T> T getSingleElePojo(List<List<Object>> result, Class<T> clazz) throws InvalidException
 	{
-		Validator.checkForNull(result);
+		Validator.validate(result);
 		
 	    if (result.isEmpty() || result.get(0).isEmpty()) {
 	        throw new InvalidException("No data found");
@@ -94,7 +95,11 @@ public class Helper {
 	
 	public static <T> List<T> getListOfPojo(List<List<Object>> result, Class<T> clazz) throws InvalidException
 	{
-		Validator.checkForNull(result);
+		Validator.validate(result);
+		
+	    if (result.isEmpty() || result.get(0).isEmpty()) {
+	        throw new InvalidException("No data found");
+	    }
 		
 		List<T> list= new ArrayList<T>();
 		for(List<Object> row: result)
@@ -143,7 +148,7 @@ public class Helper {
 		return min + (int) (Math.random() * (max - min + 1));
 	}
 	
-	public static String getSHAHash(String value) throws InvalidException 
+	public static String getSHAHash(String value) throws InternalException 
 	{
 		try
 		{
@@ -152,11 +157,11 @@ public class Helper {
 		catch(NoSuchAlgorithmException error)
 		{
 			System.out.println(error.getMessage());
-			throw new InvalidException("Error getting hash value.", error);
+			throw new InternalException("Error getting hash value.", error);
 		}
     }
 	
-	public static String getMD5Hash(String value) throws InvalidException
+	public static String getMD5Hash(String value) throws InternalException
 	{
 		try
 		{
@@ -165,7 +170,7 @@ public class Helper {
 		catch(NoSuchAlgorithmException error)
 		{
 			System.out.println(error.getMessage());
-			throw new InvalidException("Error getting hash value.", error);
+			throw new InternalException("Error getting hash value.", error);
 		}
 	}
 	
@@ -184,7 +189,7 @@ public class Helper {
 		return name.substring(0, 1).toUpperCase() + name.substring(1);
 	}
 
-	public static String generateCode() throws InvalidException
+	public static String generateCode() throws InternalException
 	{
 			StringBuilder sb= new StringBuilder();
 			
@@ -202,5 +207,16 @@ public class Helper {
 		return (scopes.contains(Scopes.EMAIL.getName()) 
 				|| scopes.contains(Scopes.PROFILE.getName()) 
 				|| scopes.contains(Scopes.OPENID.getName()));
+	}
+
+	public static String convertArrayToString(String arr[])
+	{
+		StringBuilder sb= new StringBuilder();
+		for(String iter: arr)
+		{
+			sb.append(iter+" ");
+		}
+		
+		return sb.toString().trim();
 	}
 }

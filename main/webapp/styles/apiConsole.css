@@ -68,3 +68,13 @@ button:hover {
     border-radius: 5px;
     background: #f9f9f9;
 }
+
+.uriEle{
+	display: flex;
+	justify-content: space-between;
+}
+
+.uriEle button{
+	width: 30px;
+	margin-left: 10px;
+}

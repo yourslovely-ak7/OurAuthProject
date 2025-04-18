@@ -11,7 +11,7 @@ function retrieveData()
 	element.textContent=`Would you like to allow ${name} App to access the following?`;
 	container.appendChild(element);
 	
-	const scopeParam= urlParam.get("scopes");
+	const scopeParam= urlParam.get("scope");
 	console.log(scopeParam);
 	
 	const scopes= scopeParam.split(" ");
@@ -69,6 +69,7 @@ function proceed()
 {
 	urlParam.delete('responseType');
 	urlParam.delete('serviceUrl');
+	console.log(urlParam.toString());
 	window.location.href= `/OurAuth/auth?response_type=consent&${urlParam.toString()}&agreed_scopes=${scopesArr.join(" ")}`;
 }
 

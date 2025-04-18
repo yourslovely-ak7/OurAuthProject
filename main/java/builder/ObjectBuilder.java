@@ -4,6 +4,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import crud.ClientOperation;
+import exception.InternalException;
 import exception.InvalidException;
 import pojo.AccessToken;
 import pojo.Authorization;
@@ -37,12 +38,11 @@ public class ObjectBuilder {
 		}
 	}
 	
-	public static Client buildClientFromParam(String name, String url, int userId) throws InvalidException
+	public static Client buildClientFromParam(String name, String url, int userId) throws InternalException
 	{
 		return new Client()
 		.setCreatedBy(userId)
 		.setClientName(name)
-		.setRedirectUrl(url)
 		.setClientSecret(ClientOperation.getClientSecret(url));
 	}
 	
@@ -64,11 +64,13 @@ public class ObjectBuilder {
 		
 	}
 	
-	public static AccessToken buildAccessToken(int rtId, int authId)
+	public static AccessToken buildAccessToken(int rtId, int authId, int userId, int clientRowId)
 	{
 		return new AccessToken()
 		.setRefreshTokenId(rtId)
 		.setAuthId(authId)
+		.setUserId(userId)
+		.setClientRowId(clientRowId)
 		.setStatus(Status.ACTIVE.name());
 	}
 }

@@ -1,8 +1,24 @@
+const box= document.getElementById("uriDiv");
+
+function getUrls()
+{
+	let urls = '';
+		const inputs = document.querySelectorAll('input[type="url"]');
+
+		inputs.forEach(input => {
+			if (input.value.trim() !== '') {
+				urls += input.value.trim() + ' ';
+			}
+		});
+
+		console.log(urls);
+		return urls;
+}
 
 async function registerClient()
 {
 	const name= document.getElementById('name').value;
-	const url= document.getElementById('url').value;
+	const url= getUrls();
 	
 	const response= await fetch(`/OurAuth/client?name=${name}&redirectUrl=${url}`,{
 		method: 'POST',
@@ -17,6 +33,23 @@ async function registerClient()
 	{
 		alert('Error occurred while registering client!');
 	}
+}
+
+function appendField()
+{
+	const element= document.createElement('div')
+	element.classList.add('uriEle');
+	element.innerHTML=`
+						<input type="url">
+						<button onclick= "deleteElement(this)">X</button>
+						`;
+	box.appendChild(element);
+}
+
+function deleteElement(button)
+{
+	console.log("Deleting element!")
+	box.removeChild(button.parentElement);
 }
 
 function displayData(data)

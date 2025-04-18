@@ -16,6 +16,7 @@ Scope:
  fields:
   authId: "auth_id"
   scope: "scope"
+  accessTokenId: "at_id"
 
 RefreshToken:
  table: "RefreshToken"
@@ -42,7 +43,6 @@ Client:
   clientName: "client_name"
   clientId: "client_id"
   clientSecret: "client_secret"
-  redirectUrl: "redirect_url"
   createdBy: "created_by"
  pk: "client_pk"
  fk:
@@ -52,6 +52,12 @@ Client:
    referenceField: "user_id"
  autoInc: "client_pk"
 
+Uri:
+ table: "Uri"
+ fields:
+  clientRowId: "client_pk"
+  redirectUri: "redirect_uri"
+ 
 Authorization:
  table: "Authorization"
  fields:
@@ -75,6 +81,8 @@ AccessToken:
   accessTokenId: "at_id"
   refreshTokenId: "rt_id"
   authId: "auth_id"
+  userId: "user_id"
+  clientRowId: "client_pk"
   accessToken: "access_token"
   createdTime: "created_time"
   status: "status"

@@ -39,12 +39,25 @@ function display(data)
 								<h5>Client Secret</h5>
 								<p>${iter.clientSecret}</p>
 							</div>
-							<div class='row'>
-								<h5>Redirect URL</h5>
-								<p>${iter.redirectUrl}</p>
-							</div>
 							`;
+		const uriDiv= document.createElement('uriDiv');
+		uriDiv.innerHTML=`
+							<h5>Redirect Uri(s)</h5>
+							`;
+		var index=0;
+		const uriList= iter.redirectUri;
+		
+		uriList.forEach(row => {
+			const uri= document.createElement('div');
+			uri.classList.add('row');
+			uri.innerHTML=`
+							<h5>${++index}</h5>
+							<p>${row}</p>
+							`
 							
+			uriDiv.appendChild(uri);
+		});
+		element.appendChild(uriDiv);
 		container.appendChild(element);
 	});
 }

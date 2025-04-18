@@ -2,6 +2,7 @@ package servlet;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -13,6 +14,8 @@ import builder.ObjectBuilder;
 import crud.AuthorizationOperation;
 import crud.ClientOperation;
 import crud.ScopeOperation;
+import crud.UriOperation;
+import exception.InternalException;
 import exception.InvalidException;
 import helper.Helper;
 import helper.Validator;
@@ -22,6 +25,7 @@ import pojo.Client;
 @SuppressWarnings("serial")
 public class OurAuth extends HttpServlet
 {
+	private static final String defaultScopes= "openid profile email";
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
@@ -45,28 +49,50 @@ public class OurAuth extends HttpServlet
 		String clientId= req.getParameter("client_id");
 		String redirectUrl= req.getParameter("redirect_uri");
 		String scope= req.getParameter("scope");
-		String [] scopes= scope.split(" ");
 		
+		if(scope==null)
+		{
+			scope= defaultScopes;
+		}
+		
+		String responseType= req.getParameter("response_type");
+		switch(responseType)
+		{
+			case "code":
+				typeCode(clientId, redirectUrl, scope, req, resp);
+				break;
+		}
+	}
+	
+	private void typeCode(String clientId, String redirectUri, String scope, HttpServletRequest req, HttpServletResponse resp) throws IOException
+	{
 		try
 		{
-			Client client= ClientOperation.validateClientByIdAndUrl(clientId, redirectUrl);
+			String [] scopes= scope.split(" ");
+			Client client= ClientOperation.getClientById(clientId);
 			Validator.isValidScope(scopes);
+			UriOperation.isValidUri(redirectUri, client.getClientRowId());
 			
 			HttpSession session= req.getSession(false);
 			session.setAttribute("clientRowId", client.getClientRowId());
 			
+			scope= removeRepetition(scopes);
 //			String path= Helper.getPath(req);
 //			resp.sendRedirect("/OurAuth/consent.html?serviceUrl="+path+"&scopes="+scope+"&name="+client.getClientName());
-			resp.sendRedirect("/OurAuth/consent.html?scopes="+scope+"&name="+client.getClientName());
+			resp.sendRedirect("/OurAuth/consent.html?scope="+scope+"&name="+client.getClientName()+"&redirect_uri="+redirectUri);
 		}
 		catch(InvalidException error)
 		{
 			System.out.println(error.getMessage());
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
 			resp.getWriter().write("{\"message\": \"" + error.getMessage() + "\"}");
-		}	
+		}
+		catch(InternalException error)
+		{
+			error.printStackTrace();
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
 	}
-	
 	private void generateCode(HttpServletRequest req, HttpServletResponse resp) throws IOException
 	{
 //		String clientId= req.getParameter("clientId");
@@ -89,24 +115,26 @@ public class OurAuth extends HttpServlet
 				auth= AuthorizationOperation.createAuthEntry(auth);
 			}
 			while(auth == null);
-			ScopeOperation.addScopes(auth.getAuthId(), allowableScopes);
+			ScopeOperation.addScopes(auth.getAuthId(), allowableScopes, 0);
 
 			StringBuilder responseBuilder= new StringBuilder(redirectUrl);
 			responseBuilder.append("?code="+auth.getAuthCode())
 			.append("&api_domain=http://localhost:8081/OurAuth");
 			
 			String revokedScopes= checkForRejectedScopes(reqScopes, allowableScopes);
+			System.out.println("Revoked Scopes : "+ revokedScopes);
 			
-			if(revokedScopes != null)
+			String grantedScopes= Helper.convertArrayToString(allowableScopes);
+			if(grantedScopes!= null)
 			{
-				responseBuilder.append("&scope="+revokedScopes);
+				responseBuilder.append("&scope="+grantedScopes);
 			}
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.sendRedirect(responseBuilder.toString());
 		}
-		catch(InvalidException error)
+		catch(InternalException error)
 		{
-			System.out.println(error.getMessage());
+			error.printStackTrace();
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -139,5 +167,13 @@ public class OurAuth extends HttpServlet
 			}
 		}
 		return rejectedScopes.toString();
+	}
+	
+	private String removeRepetition(String[] scopes)
+	{
+		String finalizedScopes= Arrays.stream(scopes)
+										.distinct()
+										.collect(Collectors.joining(" "));		
+		return finalizedScopes;
 	}
 }

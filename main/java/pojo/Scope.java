@@ -4,7 +4,12 @@ public class Scope {
 	
 	private int authId;
 	private String scope;
+	private int accessTokenId;
 	
+	
+	public int getAccessTokenId() {
+		return accessTokenId;
+	}
 	public int getAuthId() {
 		return authId;
 	}
@@ -17,6 +22,10 @@ public class Scope {
 	}
 	public Scope setScope(String scope) {
 		this.scope = scope;
+		return this;
+	}
+	public Scope setAccessTokenId(int accessTokenId) {
+		this.accessTokenId = accessTokenId;
 		return this;
 	}
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import exception.ConstraintViolationException;
+import exception.InternalException;
 import exception.InvalidException;
 import helper.Helper;
 import helper.Validator;
@@ -20,7 +21,7 @@ public class ClientOperation {
 	private static final Class<Client> pojo= Client.class;
 	private static Mapper newMap= new Mapper();
 	
-	public static int createClient(Client newClient) throws InvalidException
+	public static int createClient(Client newClient) throws InternalException
 	{
 			try
 			{
@@ -34,7 +35,7 @@ public class ClientOperation {
 				String message= error.getMessage();
 				if(message.contains("redirect_url"))
 				{
-					throw new InvalidException("Client with the given url already exists!");
+					throw new InternalException("Client with the given url already exists!");
 				}
 				else
 				{
@@ -43,23 +44,16 @@ public class ClientOperation {
 			}
 	}
 	
-	public static Client getClient(int clientRowId) throws InvalidException
-	{
-		Client newClient= new Client();
-		List<String> requiredFields= Helper.getAllFields(pojo);
-		Map<Client, List<String>> objects= new HashMap<Client, List<String>>();
-		objects.put(newClient, requiredFields);
-		
+	public static Client getClient(int clientRowId) throws InternalException, InvalidException
+	{		
 		Map<Integer, Condition> conditions= new HashMap<Integer, Condition>();
 		Condition newCondition= Helper.prepareCondition(tableName, pk, " = ", clientRowId, "");
 		conditions.put(1, newCondition);
 		
-		Order order= new Order();
-		
-		return Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);
+		return getClient(conditions);
 	}
 	
-	public static List<Client> getAllClients(int userId) throws InvalidException
+	public static List<Client> getAllClients(int userId) throws InternalException, InvalidException
 	{
 		Client newClient= new Client();
 		List<String> requiredFields= Helper.getAllFields(pojo);
@@ -75,29 +69,15 @@ public class ClientOperation {
 		return Helper.getListOfPojo(newMap.read(objects, conditions, order), pojo);
 	}
 	
-	public static String getClientSecret(String url) throws InvalidException
+	public static String getClientSecret(String url) throws InternalException
 	{
 		return Helper.getMD5Hash(url);
 	}
 	
-	public static Client validateClientByIdAndUrl(String clientId, String redirectUrl) throws InvalidException
-	{
-		Validator.checkForNull(clientId, "Client");
-		Validator.checkForNull(redirectUrl, "Redirect Uri");
-		
-		Map<Integer, Condition> conditions= new HashMap<Integer, Condition>();
-		Condition newCondition= Helper.prepareCondition(tableName, "clientId", " = ", clientId, "");
-		conditions.put(1, newCondition);
-		
-		newCondition= Helper.prepareCondition(tableName, "redirectUrl", " = ", redirectUrl, "AND");
-		conditions.put(2, newCondition);
-		
-		return getClient(conditions);
-	}
 	
-	public static Client validateClientById(String clientId) throws InvalidException
+	public static Client getClientById(String clientId) throws InternalException, InvalidException
 	{
-		Validator.checkForNull(clientId, "clientId");
+		Validator.validate(clientId, "client");
 		
 		Map<Integer, Condition> conditions= new HashMap<Integer, Condition>();
 		Condition newCondition= Helper.prepareCondition(tableName, "clientId", " = ", clientId, "");
@@ -106,15 +86,45 @@ public class ClientOperation {
 		return getClient(conditions);
 	}
 	
-	private static Client getClient(Map<Integer,Condition> conditions) throws InvalidException
+	private static Client getClient(Map<Integer,Condition> conditions) throws InternalException, InvalidException
 	{
-		Client newClient= new Client();
-		List<String> requiredFields= Helper.getAllFields(pojo);
-		Map<Client, List<String>> objects= new HashMap<Client, List<String>>();
-		objects.put(newClient, requiredFields);
-		
-		Order order= new Order();
-		
-		return Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);
+		try
+		{
+			Client newClient= new Client();
+			List<String> requiredFields= Helper.getAllFields(pojo);
+			Map<Client, List<String>> objects= new HashMap<Client, List<String>>();
+			objects.put(newClient, requiredFields);
+			
+			Order order= new Order();
+			
+			return Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);			
+		}
+		catch(InvalidException error)
+		{
+			System.out.println("Error: "+error.getMessage());
+			throw new InternalException("invalid_client");
+		}
 	}
 }
+
+//	public static Client validateClientByIdAndUrl(String clientId, String redirectUrl) throws InternalException
+//	{
+//		try
+//		{
+//			Validator.checkForNull(clientId, "client");
+//			Validator.checkForNull(redirectUrl, "redirectUri");
+//			
+//			Map<Integer, Condition> conditions= new HashMap<Integer, Condition>();
+//			Condition newCondition= Helper.prepareCondition(tableName, "clientId", " = ", clientId, "");
+//			conditions.put(1, newCondition);
+//			
+//			
+//			
+//			return getClient(conditions);			
+//		}
+//		catch(InternalException error)
+//		{
+//			System.out.println("Error: "+error.getMessage());
+//			throw new InternalException("invalid_client");
+//		}
+//	}

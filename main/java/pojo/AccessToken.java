@@ -8,8 +8,15 @@ public class AccessToken {
 	private long createdTime;
 	private String status;
 	private int authId;
+	private int userId;
+	private int clientRowId;
 	
-	
+	public int getClientRowId() {
+		return clientRowId;
+	}
+	public int getUserId() {
+		return userId;
+	}
 	public int getAuthId() {
 		return authId;
 	}
@@ -27,6 +34,14 @@ public class AccessToken {
 	}
 	public String getStatus() {
 		return status;
+	}
+	public AccessToken setUserId(int userId) {
+		this.userId = userId;
+		return this;
+	}
+	public AccessToken setClientRowId(int clientRowId) {
+		this.clientRowId = clientRowId;
+		return this;
 	}
 	public AccessToken setAccessTokenId(int accessTokenId) {
 		this.accessTokenId = accessTokenId;

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import exception.ConstraintViolationException;
+import exception.InternalException;
 import exception.InvalidException;
 import helper.Helper;
 import helper.Validator;
@@ -22,7 +23,7 @@ public class RefreshTokenOperation {
 	private static final Class<RefreshToken> pojo= RefreshToken.class;
 	private static Mapper newMap= new Mapper();
 	
-	public static RefreshToken createRTEntry(RefreshToken token) throws InvalidException
+	public static RefreshToken createRTEntry(RefreshToken token) throws InternalException
 	{
 		try
 		{
@@ -44,24 +45,31 @@ public class RefreshTokenOperation {
 		}
 	}
 	
-	public static RefreshToken getRT(String rToken) throws InvalidException
+	public static RefreshToken getRT(String rToken) throws InternalException, InvalidException
 	{
-		Validator.checkForNull(rToken);
-		
-		RefreshToken token= new RefreshToken();
-		Map<RefreshToken, List<String>> objects= new HashMap<>();
-		objects.put(token, Helper.getAllFields(pojo));
-		
-		Map<Integer, Condition> conditions= new HashMap<>();
-		Condition newCondition= Helper.prepareCondition(tableName, "refreshToken", " = ", rToken, "");
-		conditions.put(1, newCondition);
-		
-		Order order= new Order();
-		
-		return Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);
+		try
+		{
+			Validator.validate(rToken, "token");
+			
+			RefreshToken token= new RefreshToken();
+			Map<RefreshToken, List<String>> objects= new HashMap<>();
+			objects.put(token, Helper.getAllFields(pojo));
+			
+			Map<Integer, Condition> conditions= new HashMap<>();
+			Condition newCondition= Helper.prepareCondition(tableName, "refreshToken", " = ", rToken, "");
+			conditions.put(1, newCondition);
+			
+			Order order= new Order();
+			
+			return Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);
+		}
+		catch(InvalidException error)
+		{
+			throw new InvalidException("invalid_token");
+		}
 	}
 	
-	public static String updateRT(RefreshToken token, int rtId) throws InvalidException
+	public static String updateRT(RefreshToken token, int rtId) throws InternalException
 	{
 		try
 		{
@@ -79,18 +87,45 @@ public class RefreshTokenOperation {
 			conditions.put(1, newCondition);
 			
 			int result= newMap.update(objects, conditions);
-			if(result != 1)
-			{
+			if (result != 1) {
 				return null;
-			}
-			else
-			{
+			} else {
 				return refreshToken;
 			}
 		}
 		catch (ConstraintViolationException error) 
 		{
 			return null;
+		}
+	}
+	
+	public static boolean deactivateRT(int rtId) throws InternalException
+	{
+		try
+		{
+			RefreshToken token= new RefreshToken();
+			
+			token.setStatus(Status.INACTIVE.name());
+
+			List<Object> objects= new ArrayList<>();
+			objects.add(token);
+			
+			Map<Integer, Condition> conditions= new HashMap<>();
+			Condition newCondition= Helper.prepareCondition(tableName, pk, " = ", rtId, "");
+			conditions.put(1, newCondition);
+			
+			int result= newMap.update(objects, conditions);
+			if (result != 1) {
+				return false;
+			} else {
+				System.out.println("Message: RefreshToken deactivated!");
+				return true ;
+			}
+		}
+		catch (ConstraintViolationException error) 
+		{
+			System.out.println("No handling needed for this exception...");
+			return false;
 		}
 	}
 }

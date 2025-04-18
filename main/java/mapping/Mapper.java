@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import database.SQLQueryBuilder;
 import exception.ConstraintViolationException;
-import exception.InvalidException;
+import exception.InternalException;
 import helper.Helper;
 import helper.Validator;
 import pojo.Condition;
@@ -23,7 +23,7 @@ public class Mapper {
 	private static SQLQueryBuilder query = new SQLQueryBuilder();
 	private static YamlLoader yaml = new YamlLoader();
 
-	public <T> long create(T object, boolean returnGeneratedKey) throws InvalidException, ConstraintViolationException {
+	public <T> long create(T object, boolean returnGeneratedKey) throws InternalException, ConstraintViolationException {
 		try {
 			Validator.checkForNull(object);
 
@@ -38,11 +38,11 @@ public class Mapper {
 		} catch (NoSuchMethodException | SecurityException | IllegalAccessException
 				| InvocationTargetException | ClassNotFoundException error) {
 			System.out.println("Error : " + error.getMessage());
-			throw new InvalidException("Request Failed! Check required Data and Try Again!", error);
+			throw new InternalException("Request Failed! Check required Data and Try Again!", error);
 		}
 	}
 	
-	public <T> long createBatch(T object, List<T> records) throws InvalidException, ConstraintViolationException {
+	public <T> long createBatch(T object, List<T> records) throws InternalException, ConstraintViolationException {
 		try {
 			Validator.checkForNull(object);
 			Validator.checkForNull(records);
@@ -59,12 +59,12 @@ public class Mapper {
 		} catch (NoSuchMethodException | SecurityException | IllegalAccessException
 				| InvocationTargetException | ClassNotFoundException error) {
 			System.out.println("Error : " + error.getMessage());
-			throw new InvalidException("Request Failed! Check required Data and Try Again!", error);
+			throw new InternalException("Request Failed! Check required Data and Try Again!", error);
 		}
 	}
 
 	public <T> List<List<Object>> read(Map<T, List<String>> objects, Map<Integer, Condition> condition, Order order)
-			throws InvalidException {
+			throws InternalException {
 		try {
 			List<Fields<T>> requiredFieldObjects = new ArrayList<>();
 			List<String> requiredFieldNames;
@@ -131,15 +131,15 @@ public class Mapper {
 			List<Map<String, Object>> result = query.select(requiredFieldObjects, join, queryCond, order);
 
 			return objectConversion(objects, result);
-		} catch (InvalidException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+		} catch (InternalException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException error) {
 
 			System.out.println("Error : " + error.getMessage());
-			throw new InvalidException("Request Failed! Check required Data and Try Again!", error);
+			throw new InternalException("Request Failed! Check required Data and Try Again!", error);
 		}
 	}
 
-	public <T> int update(List<T> objects, Map<Integer, Condition> condition) throws InvalidException, ConstraintViolationException {
+	public <T> int update(List<T> objects, Map<Integer, Condition> condition) throws InternalException, ConstraintViolationException {
 		try {
 			int length = objects.size();
 			List<String> allTables = objects.stream().map(obj -> yaml.getTableName(obj.getClass().getSimpleName()))
@@ -185,14 +185,14 @@ public class Mapper {
 			queryCond = constructCondition(condition);
 
 			return query.update(newValues, join, queryCond);
-		} catch (InvalidException | NoSuchMethodException | SecurityException | IllegalAccessException
+		} catch (InternalException | NoSuchMethodException | SecurityException | IllegalAccessException
 				| InvocationTargetException | ClassNotFoundException error) {
 			System.out.println("Error : " + error.getMessage());
-			throw new InvalidException("Request Failed! Check required Data and Try Again!", error);
+			throw new InternalException("Request Failed! Check required Data and Try Again!", error);
 		}
 	}
 
-	public <T> void delete(T object, Map<Integer, Condition> condition) throws InvalidException {
+	public <T> void delete(T object, Map<Integer, Condition> condition) throws InternalException {
 		try {
 			String classSimpleName = object.getClass().getSimpleName();
 			String tableName = yaml.getTableName(classSimpleName);
@@ -206,14 +206,14 @@ public class Mapper {
 			}
 
 			query.delete(tableName, queryCond);
-		} catch (InvalidException | NoSuchMethodException | SecurityException | IllegalAccessException
+		} catch (InternalException | NoSuchMethodException | SecurityException | IllegalAccessException
 				| InvocationTargetException | ClassNotFoundException error) {
 			System.out.println("Error : " + error.getMessage());
-			throw new InvalidException("Request Failed! Check required Data and Try Again!", error);
+			throw new InternalException("Request Failed! Check required Data and Try Again!", error);
 		}
 	}
 
-	public <T> int getCount(List<T> object, Map<Integer, Condition> condition) throws InvalidException {
+	public <T> int getCount(List<T> object, Map<Integer, Condition> condition) throws InternalException {
 		try {
 			int len = object.size();
 			List<String> allTables = object.stream().map(obj -> yaml.getTableName(obj.getClass().getSimpleName()))
@@ -246,15 +246,15 @@ public class Mapper {
 
 			String table = yaml.getTableName(object.get(0).getClass().getSimpleName());
 			return query.selectCount(table, join, queryCond);
-		} catch (InvalidException | ClassNotFoundException error) {
+		} catch (InternalException | ClassNotFoundException error) {
 			System.out.println("Error : " + error.getMessage());
-			throw new InvalidException("Request Failed! Check required Data and Try Again!", error);
+			throw new InternalException("Request Failed! Check required Data and Try Again!", error);
 		}
 	}
 
 	private <T> Map<String, Object> mapFieldsAndValues(T object, Class<?> clazz, String classSimpleName, String type)
 			throws NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException,
-			InvalidException {
+			InternalException {
 		Map<String, Object> valueSet = new HashMap<String, Object>();
 
 		Map<String, String> fieldSet = yaml.getAllColumnNames(classSimpleName);
@@ -272,8 +272,10 @@ public class Mapper {
 			if (autoIncrementFieldName == null || !autoIncrementFieldName.equals(tableFieldName)) {
 				Object value = getterMethod.invoke(object);
 
-				switch(type)
+				if (value != null && isNonEmptyValue(value))
 				{
+					switch(type)
+					{
 					case "INSERT":
 						valueSet.put(tableFieldName, value);
 						break;
@@ -281,10 +283,9 @@ public class Mapper {
 						valueSet.put(tableFieldName, pojoFieldName);
 						break;
 					case "UPDATE":
-						if (value != null && isNonEmptyValue(value)) {
-							valueSet.put(tableFieldName, value);
-						}
+						valueSet.put(tableFieldName, value);
 						break;
+					}
 				}
 			}
 		}

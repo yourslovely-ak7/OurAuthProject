@@ -26,7 +26,9 @@ import crud.ClientOperation;
 import crud.KeyOperation;
 import crud.RefreshTokenOperation;
 import crud.ScopeOperation;
+import crud.UriOperation;
 import crud.UserOperation;
+import exception.InternalException;
 import exception.InvalidException;
 import helper.Helper;
 import helper.KeyConvertor;
@@ -45,185 +47,226 @@ public class TokenServlet extends HttpServlet
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		
-		String type= req.getParameter("response_type");
+		String type= req.getParameter("grant_type");
 		System.out.println("Token request received for "+type);
 
-		switch(type)
-		{
-			case "token":
-				getTokens(req, resp);
-				break;
-			
-			case "refresh":
-				refreshToken(req, resp);
-				break;
-		}
-	}
-	
-	private void getTokens(HttpServletRequest req, HttpServletResponse resp) throws IOException
-	{
 		String clientId= req.getParameter("client_id");
 		String clientSecret= req.getParameter("client_secret");
-		String redirectUrl= req.getParameter("redirect_uri");
-		String code= req.getParameter("code");
-		
+		String errorMessage="";
+
 		try
 		{
-			Client client=null;
-			try
+			if(clientId==null || clientSecret==null)
 			{
-				client= ClientOperation.validateClientByIdAndUrl(clientId, redirectUrl);
-			}
-			catch(InvalidException error)
-			{
-				System.out.println(error.getMessage());
-				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				resp.getWriter().write("{\"error\": \"" + "Invalid client!" + "\"}");
-			}
-			
-			Authorization auth=null;
-			try
-			{
-				auth= AuthorizationOperation.getAuthorization(code);
-				Validator.isExpired(auth.getCreatedTime());
-			}
-			catch(InvalidException error)
-			{
-				System.out.println(error.getMessage());
-				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				resp.getWriter().write("{\"error\": \"" + "Invalid code!" + "\"}");
-			}
-			
-			Validator.checkForNull(client);
-			Validator.checkForNull(auth);
-			AuthorizationOperation.deactivateToken(auth.getAuthId());
-			
-			if(client.getClientSecret().equals(clientSecret))
-			{
-				int userId= auth.getUserId();
-				int clientRowId= client.getClientRowId();
-				int authId= auth.getAuthId();
-				JSONObject response= new JSONObject();
+				System.out.println("Client credentials are expected to be sent via Header.");
+				String token= req.getHeader("Authorization");
+				Validator.validate(token, "token");
 				
-				RefreshToken rToken= generateRefreshToken(userId, clientRowId, authId);
-				String aToken= generateAccessToken(rToken.getRefreshTokenId(), authId);
-				
-				response.put("refresh_token", rToken.getRefreshToken());
-				response.put("access_token", aToken);
-				response.put("expires_in", 3600);
-				
-				List<String> scopes= ScopeOperation.getScopes(authId);
-				System.out.println("Scopes granted: "+scopes);
-				
-				if(Helper.hasOIDCScopes(scopes))
+				if(!token.startsWith("Basic"))
 				{
-					String idToken= generateIdToken(userId, scopes, clientId);
-					response.put("id_token", idToken);
+					errorMessage= "invalid_token_type!";
+					throw new InvalidException(errorMessage);
 				}
-
-				resp.setStatus(HttpServletResponse.SC_OK);
-				resp.getWriter().write(response.toString());
+				System.out.println("Authorization Header: "+ token);
+				String clientCred= new String(Base64.getDecoder().decode(token.split(" ")[1]));
+				
+				String[] credentials= clientCred.split(":");
+				clientId= credentials[0];
+				clientSecret= credentials[1];
 			}
-		}
-		catch(InvalidException | JSONException error)
-		{
-			error.printStackTrace();
-			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	private void refreshToken(HttpServletRequest req, HttpServletResponse resp) throws IOException
-	{
-		String clientId= req.getParameter("client_id");
-		String clientSecret= req.getParameter("client_secret");
-		String refreshToken= req.getParameter("refresh_token");
-		
-		Client client=null;
-		try
-		{
-			client= ClientOperation.validateClientById(clientId);
-			if(!(client.getClientSecret().equals(clientSecret)))
+			
+			JSONObject jsonResponse=null;
+			switch(type)
 			{
-				throw new InvalidException("Client secret is invalid!");
+				case "authorization_code":
+					String redirectUri= req.getParameter("redirect_uri");
+					String code= req.getParameter("code");
+				
+					jsonResponse= grantByCode(clientId, clientSecret, redirectUri, code);
+					break;
+				
+				case "client_credentials":
+					String scope= req.getParameter("scope");
+					jsonResponse= grantByClientCred(clientId, clientSecret, scope);
+					break;
+					
+				case "refresh_token":
+					String refreshToken= req.getParameter("refresh_token");
+					scope= req.getParameter("scope");
+					jsonResponse= refreshToken(clientId, clientSecret, refreshToken, scope);
+					break;
 			}
+			
+			resp.setStatus(HttpServletResponse.SC_OK);
+			resp.addHeader("Cache-Control", "no-store");
+			resp.addHeader("Pragma", "no-cache");
+			resp.getWriter().write(jsonResponse.toString());
 		}
 		catch(InvalidException error)
 		{
 			error.printStackTrace();
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			resp.getWriter().write("{\"error\": \"" + "Invalid client!" + "\"}");
+			resp.getWriter().write("{\"error\": \"" + error.getMessage() + "\"}");
 		}
-
-		try
-		{
-			Validator.checkForNull(refreshToken);
-			RefreshToken rToken= RefreshTokenOperation.getRT(refreshToken);
-			String aToken= generateAccessToken(rToken.getRefreshTokenId(), rToken.getAuthId());
-			
-			RefreshToken newToken= new RefreshToken();
-			String token= null;
-			do {
-				token= RefreshTokenOperation.updateRT(newToken, rToken.getRefreshTokenId());
-			}
-			while(token==null);
-			
-			JSONObject jsonResponse= new JSONObject();
-			jsonResponse.put("refresh_token", token);
-			jsonResponse.put("access_token", aToken);
-
-			try
-			{
-				String scope= req.getParameter("scope");
-				Validator.checkForNull(scope);
-
-				List<String> scopes= Arrays.asList(scope.split(" "));
-				if(Helper.hasOIDCScopes(scopes))
-				{
-					String idToken= generateIdToken(rToken.getUserId(), scopes, clientId);
-					jsonResponse.put("id_token", idToken);
-				}
-			}
-			catch(InvalidException error)
-			{
-				System.out.println("Scopes not present! Sending only access token!");
-			}
-
-			resp.setStatus(HttpServletResponse.SC_OK);
-			resp.getWriter().write(jsonResponse.toString());
-		}
-		catch(InvalidException | JSONException error)
+		catch(InternalException | JSONException error)
 		{
 			error.printStackTrace();
-			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			resp.getWriter().write("{\"error\": \"" + "Process interrupted!" + "\"}");
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	private JSONObject grantByCode(String clientId, String clientSecret, String redirectUri,  String code) throws IOException, JSONException, InternalException, InvalidException
+	{
+		Validator.validate(clientSecret, "client");
+			
+		Client client=null;
+		client= ClientOperation.getClientById(clientId);
+		UriOperation.isValidUri(redirectUri, client.getClientRowId());
+		
+		Authorization auth=null;
+		auth= AuthorizationOperation.getAuthorization(code);
+		Validator.isExpired(auth.getCreatedTime(), "code");
+		
+		AuthorizationOperation.deactivateToken(auth.getAuthId());
+		
+		if(!client.getClientSecret().equals(clientSecret))
+		{
+			throw new InvalidException("invalid_client_secret");
+		}
+		
+		int userId= auth.getUserId();
+		int clientRowId= client.getClientRowId();
+		int authId= auth.getAuthId();
+		JSONObject response= produceTokenPair(userId, clientRowId, authId);
+		
+		List<String> scopes= ScopeOperation.getScopes(authId, 0);
+		System.out.println("Scopes granted: "+scopes);
 
-	private RefreshToken generateRefreshToken(int userId, int clientRowId, int authId) throws InvalidException
+		if(Helper.hasOIDCScopes(scopes))
+		{
+			String idToken= generateIdToken(userId, scopes, clientId);
+			response.put("id_token", idToken);
+		}
+		
+		return response;
+	}
+
+	private JSONObject grantByClientCred(String clientId, String clientSecret, String scope) throws InvalidException, InternalException, JSONException
+	{
+		Validator.validate(clientSecret, "client");
+		Validator.validate(scope, "scope");
+		
+		String[] scopes= scope.split(" ");
+		Validator.isValidScope(scopes);
+
+		Client client=null;
+		client= ClientOperation.getClientById(clientId);
+		
+		if(!client.getClientSecret().equals(clientSecret))
+		{
+			throw new InvalidException("invalid_client_secret");
+		}
+		
+		int userId= client.getCreatedBy();
+		int clientRowId= client.getClientRowId();
+		JSONObject response= new JSONObject();
+		
+		AccessToken token= generateAccessToken(0, 0, userId, clientRowId);
+		ScopeOperation.addScopes(0, scopes, token.getAccessTokenId());
+		
+		response.put("access_token", token.getAccessToken());
+		response.put("expires_in", 3600);
+		
+		return response;
+	}
+
+	private JSONObject refreshToken(String clientId, String clientSecret, String refreshToken, String scope) throws IOException, InternalException, InvalidException, JSONException
+	{
+		Client client=null;
+		client= ClientOperation.getClientById(clientId);
+		if(!(client.getClientSecret().equals(clientSecret)))
+		{
+			throw new InvalidException("invalid_client_secret.");
+		}
+		
+		RefreshToken rToken= RefreshTokenOperation.getRT(refreshToken);
+		
+		int userId= rToken.getUserId();
+		int clientRowId= client.getClientRowId();
+		int authId= rToken.getAuthId();
+		JSONObject jsonResponse= produceTokenPair(userId, clientRowId, authId);
+		
+		RefreshTokenOperation.deactivateRT(rToken.getRefreshTokenId());
+		try
+		{
+			Validator.validate(scope);
+			String[] scopes= scope.split(" ");
+			Validator.isValidScope(scopes);
+			
+			AccessToken token= AccessTokenOperation.getAT(jsonResponse.getString("access_token"));
+			int atId= token.getAccessTokenId();
+			
+			List<String> requestedScopes= Arrays.asList(scopes);
+			List<String> grantedScopes= ScopeOperation.getScopes(rToken.getAuthId(), atId);
+			if(!Validator.isEqual(requestedScopes, grantedScopes))
+			{
+				ScopeOperation.addScopes(token.getAuthId(), scopes, atId);
+			}
+			
+			if(Helper.hasOIDCScopes(requestedScopes))
+			{
+				String idToken= generateIdToken(rToken.getUserId(), requestedScopes, clientId);
+				jsonResponse.put("id_token", idToken);
+			}
+		}
+		catch(InvalidException error)
+		{
+			System.out.println("Scopes not present! Sending only access token!");
+		}
+		
+		return jsonResponse;
+	}
+	
+	private RefreshToken generateRefreshToken(int userId, int clientRowId, int authId) throws InternalException
 	{
 		RefreshToken rToken= ObjectBuilder.buildRefreshToken(userId, clientRowId, authId);
+		RefreshToken referer;
 		do
 		{
-			rToken= RefreshTokenOperation.createRTEntry(rToken);					
+			referer= RefreshTokenOperation.createRTEntry(rToken);
 		}
-		while(rToken==null);
+		while(referer==null);
 
-		return rToken;
+		return referer;
 	}
 
-	private String generateAccessToken(int rtId, int authId) throws InvalidException
+	private AccessToken generateAccessToken(int rtId, int authId, int userId, int clientRowId) throws InternalException
 	{
-		AccessToken aToken= ObjectBuilder.buildAccessToken(rtId, authId);
-		
+		AccessToken aToken= ObjectBuilder.buildAccessToken(rtId, authId, userId, clientRowId);
+		AccessToken referer;
 		do {
-			aToken= AccessTokenOperation.createATEntry(aToken);
+			referer= AccessTokenOperation.createATEntry(aToken);
 		}
-		while(aToken==null);
+		while(referer==null);
 
-		return aToken.getAccessToken();
+		return referer;
+	}
+	
+	private JSONObject produceTokenPair(int userId, int clientRowId, int authId) throws JSONException, InternalException, InvalidException
+	{
+		JSONObject response= new JSONObject();
+		
+		RefreshToken rToken= generateRefreshToken(userId, clientRowId, authId);
+		AccessToken aToken= generateAccessToken(rToken.getRefreshTokenId(), authId, userId, clientRowId);
+		
+		response.put("refresh_token", rToken.getRefreshToken());
+		response.put("access_token", aToken.getAccessToken());
+		response.put("expires_in", 3600);
+		
+		return response;
 	}
 
-	private String generateIdToken(int userId, List<String> scopes, String clientId) throws JSONException, InvalidException
+	private String generateIdToken(int userId, List<String> scopes, String clientId) throws JSONException, InternalException, InvalidException
 	{
 		String kid= "f2d5ae4a1e67329f5aec223b7544d3dc";
 
@@ -278,7 +321,7 @@ public class TokenServlet extends HttpServlet
 		catch(NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException | SignatureException error)
 		{
 			System.out.println(error.getMessage());
-			throw new InvalidException("Error while generating ID token", error);
+			throw new InternalException("Error while generating ID token", error);
 		}
 	}
 }
