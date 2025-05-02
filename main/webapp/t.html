@@ -1,0 +1,25 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<div>
+		<h1 id="display"></h1>
+		<input type="text" id="t"/>
+		<button onclick="trigger()">CLick</button>
+	</div>
+	
+	<script>
+		function trigger()
+		{
+			const value= document.getElementById('t').value;
+			console.log(value);
+			document.getElementById("display").innerHTML= `Welcome, ${value}`;
+		}
+	</script>
+	
+</body>
+</html>
