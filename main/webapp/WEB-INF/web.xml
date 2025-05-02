@@ -50,6 +50,15 @@
         <url-pattern>/resource</url-pattern>
     </servlet-mapping>
     
+	<servlet>
+        <servlet-name>TokenIntrospection</servlet-name>
+        <servlet-class>servlet.TokenIntrospection</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TokenIntrospection</servlet-name>
+        <url-pattern>/introspect</url-pattern>
+    </servlet-mapping>
+    
     <filter>
     	<filter-name>AuthenticationFilter</filter-name>
     	<filter-class>filter.AuthenticationFilter</filter-class>

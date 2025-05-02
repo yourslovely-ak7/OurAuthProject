@@ -44,7 +44,7 @@ public class AuthorizationOperation
 		}
 	}
 	
-	public static Authorization getAuthorization(String authCode) throws InternalException, InvalidException
+	public static Authorization getAuthorization(String authCode, int clientRowId) throws InternalException, InvalidException
 	{
 		try
 		{
@@ -61,6 +61,9 @@ public class AuthorizationOperation
 			
 			newCondition= Helper.prepareCondition(tableName, "status", " = ", Status.ACTIVE.name(), "AND");
 			conditions.put(2, newCondition);
+			
+			newCondition= Helper.prepareCondition(tableName, "clientRowId", " = ", clientRowId, "AND");
+			conditions.put(3, newCondition);
 			
 			Order order= new Order();
 			

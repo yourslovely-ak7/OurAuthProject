@@ -93,15 +93,16 @@ public class Validator {
 		return apiScopes;
 	}
 	
-	public static boolean isExpired(long time, String type) throws InvalidException
+	public static boolean isExpired(long time, String type, long validityInSec) throws InvalidException
 	{
-		long inSec= time/1000, currentTimeInSec= System.currentTimeMillis()/1000;
+		long inSec= (time/1000) + validityInSec, currentTimeInSec= System.currentTimeMillis()/1000;
 		
-		if(inSec > currentTimeInSec)
+		System.out.println("Expiration Time: "+inSec+" ; Current Time: "+ currentTimeInSec);
+		if(inSec < currentTimeInSec)
 		{
-			throw new InvalidException(type+"_expired!");
+			return true;
 		}
-		return true;
+		return false;
 	}
 	
 	public static boolean isEqual(List<String> list1, List<String> list2)

@@ -52,7 +52,6 @@ public class TokenServlet extends HttpServlet
 
 		String clientId= req.getParameter("client_id");
 		String clientSecret= req.getParameter("client_secret");
-		String errorMessage="";
 
 		try
 		{
@@ -64,8 +63,7 @@ public class TokenServlet extends HttpServlet
 				
 				if(!token.startsWith("Basic"))
 				{
-					errorMessage= "invalid_token_type!";
-					throw new InvalidException(errorMessage);
+					throw new InvalidException("invalid_token_type");
 				}
 				System.out.println("Authorization Header: "+ token);
 				String clientCred= new String(Base64.getDecoder().decode(token.split(" ")[1]));
@@ -121,11 +119,12 @@ public class TokenServlet extends HttpServlet
 			
 		Client client=null;
 		client= ClientOperation.getClientById(clientId);
-		UriOperation.isValidUri(redirectUri, client.getClientRowId());
+		int clientRowId= client.getClientRowId();
+		UriOperation.isValidUri(redirectUri, clientRowId);
 		
 		Authorization auth=null;
-		auth= AuthorizationOperation.getAuthorization(code);
-		Validator.isExpired(auth.getCreatedTime(), "code");
+		auth= AuthorizationOperation.getAuthorization(code, clientRowId);
+		Validator.isExpired(auth.getCreatedTime(), "code", 2*60);	//Code expiration time is 2 minutes
 		
 		AuthorizationOperation.deactivateToken(auth.getAuthId());
 		
@@ -135,7 +134,6 @@ public class TokenServlet extends HttpServlet
 		}
 		
 		int userId= auth.getUserId();
-		int clientRowId= client.getClientRowId();
 		int authId= auth.getAuthId();
 		JSONObject response= produceTokenPair(userId, clientRowId, authId);
 		

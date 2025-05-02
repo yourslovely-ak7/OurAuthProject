@@ -34,21 +34,19 @@ public class AuthorizationFilter implements Filter{
 		try
 		{
 			String authToken= req.getHeader("Authorization");
-			Validator.checkForNull(authToken, "Access token");
+			Validator.checkForNull(authToken, "token");
 			
 			if(!authToken.startsWith("Bearer"))
 			{
-				throw new InternalException("invalid_token_type!");
+				throw new InvalidException("invalid_token_type");
 			}
 			
 			String aToken= authToken.split(" ")[1];
 			AccessToken token= AccessTokenOperation.getAT(aToken);
-			long expiryTime= (token.getCreatedTime()/1000)+3600;
-//			long expiryTime= (token.getCreatedTime()/1000)+60;		//For verification.
-			if(expiryTime < System.currentTimeMillis()/1000)
+			if(Validator.isExpired(token.getCreatedTime(), "token", 3600))	//Token expiration 1 hour
 			{
 				AccessTokenOperation.deactivateAT(token.getAccessTokenId());
-				throw new InternalException("token_expired");
+				throw new InvalidException("token_expired");
 			}
 			
 			String endPoint= req.getRequestURI();
@@ -61,13 +59,12 @@ public class AuthorizationFilter implements Filter{
 			}
 			else
 			{
-				throw new InternalException("no_access");
+				throw new InvalidException("no_access");
 			}
 		}
 		catch(InvalidException error)
 		{
 			error.printStackTrace();
-			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			resp.getWriter().write("{\"error\": \"" + error.getMessage() + "\"}");
 		}
 		catch(InternalException error)
@@ -75,7 +72,6 @@ public class AuthorizationFilter implements Filter{
 			error.printStackTrace();
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
-
 	}
 	
 	private static boolean hasAuthority(String endPoint, int authId, int atId) throws InternalException, InvalidException
