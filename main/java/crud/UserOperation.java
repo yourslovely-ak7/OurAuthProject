@@ -20,7 +20,7 @@ public class UserOperation {
 	private static final Class<User> pojo= User.class;
 	private static Mapper newMap= new Mapper();
 	
-	public static int addUser(User user) throws InternalException
+	public static int addUser(User user) throws InternalException, InvalidException
 	{
 		try
 		{
@@ -28,7 +28,7 @@ public class UserOperation {
 		}
 		catch(ConstraintViolationException error)
 		{
-			throw new InternalException("Error due to violation of Unique Constraint", error);
+			throw new InvalidException("email already registered", error);
 		}
 	}
 	

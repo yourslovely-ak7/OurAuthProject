@@ -39,8 +39,9 @@ public class RefreshTokenOperation {
 			token.setRefreshTokenId(rtId);
 			return token;
 		}
-		catch (ConstraintViolationException error) 
+		catch (ConstraintViolationException error)
 		{
+			System.out.println(tableName+" entry already exists!");
 			return null;
 		}
 	}
@@ -65,7 +66,7 @@ public class RefreshTokenOperation {
 		}
 		catch(InvalidException error)
 		{
-			throw new InvalidException("invalid_token");
+			throw new InvalidException("invalid_token", error);
 		}
 	}
 	
@@ -95,6 +96,7 @@ public class RefreshTokenOperation {
 		}
 		catch (ConstraintViolationException error) 
 		{
+			System.out.println(tableName+" entry already exists!");
 			return null;
 		}
 	}
@@ -115,17 +117,11 @@ public class RefreshTokenOperation {
 			conditions.put(1, newCondition);
 			
 			int result= newMap.update(objects, conditions);
-			if (result != 1) {
-				return false;
-			} else {
-				System.out.println("Message: RefreshToken deactivated!");
-				return true ;
-			}
+			return result==1;
 		}
 		catch (ConstraintViolationException error) 
 		{
-			System.out.println("No handling needed for this exception...");
-			return false;
+			throw new InternalException("No handling required for this exception...");
 		}
 	}
 }

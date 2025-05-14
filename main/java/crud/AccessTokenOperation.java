@@ -41,6 +41,7 @@ public class AccessTokenOperation {
 		}
 		catch (ConstraintViolationException error) 
 		{
+			System.out.println(tableName+" entry already exists!");
 			return null;
 		}
 	}
@@ -65,7 +66,7 @@ public class AccessTokenOperation {
 		}
 		catch(InternalException error)
 		{
-			throw new InternalException("invalid_token", error);
+			throw new InvalidException("invalid_token", error);
 		}
 	}
 	
@@ -94,8 +95,7 @@ public class AccessTokenOperation {
 		}
 		catch (ConstraintViolationException error) 
 		{
-			System.out.println("No handling needed for this exception...");
-			return false;
+			throw new InternalException("No handling required for this exception...");
 		}
 	}
 }

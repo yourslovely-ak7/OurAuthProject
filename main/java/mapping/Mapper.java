@@ -192,7 +192,7 @@ public class Mapper {
 		}
 	}
 
-	public <T> void delete(T object, Map<Integer, Condition> condition) throws InternalException {
+	public <T> int delete(T object, Map<Integer, Condition> condition) throws InternalException {
 		try {
 			String classSimpleName = object.getClass().getSimpleName();
 			String tableName = yaml.getTableName(classSimpleName);
@@ -205,7 +205,7 @@ public class Mapper {
 				queryCond = constructPKCondition(object);
 			}
 
-			query.delete(tableName, queryCond);
+			return query.delete(tableName, queryCond);
 		} catch (InternalException | NoSuchMethodException | SecurityException | IllegalAccessException
 				| InvocationTargetException | ClassNotFoundException error) {
 			System.out.println("Error : " + error.getMessage());

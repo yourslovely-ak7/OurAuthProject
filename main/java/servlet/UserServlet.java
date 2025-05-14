@@ -42,10 +42,16 @@ public class UserServlet extends HttpServlet{
 				break;
 			}			
 		}
-		catch(JSONException | InvalidException | InternalException error)
+		catch(JSONException | InternalException error)
 		{
 			error.printStackTrace();
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
+		catch(InvalidException error)
+		{
+			error.printStackTrace();
+			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			resp.getWriter().write("{\"error\": \"" + error.getMessage() + "\"}");
 		}
 	}
 	

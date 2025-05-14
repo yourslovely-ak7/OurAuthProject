@@ -21,7 +21,7 @@ public class ClientOperation {
 	private static final Class<Client> pojo= Client.class;
 	private static Mapper newMap= new Mapper();
 	
-	public static int createClient(Client newClient) throws InternalException
+	public static int createClient(Client newClient) throws InternalException, InvalidException
 	{
 			try
 			{
@@ -33,13 +33,13 @@ public class ClientOperation {
 			catch (ConstraintViolationException error) 
 			{
 				String message= error.getMessage();
-				if(message.contains("redirect_url"))
+				if(message.contains("client_id"))
 				{
-					throw new InternalException("Client with the given url already exists!");
+					return 0;					
 				}
 				else
 				{
-					return 0;					
+					throw new InvalidException("Client with the url expected to be already registered.", error);
 				}
 			}
 	}
@@ -102,8 +102,19 @@ public class ClientOperation {
 		catch(InvalidException error)
 		{
 			System.out.println("Error: "+error.getMessage());
-			throw new InternalException("invalid_client");
+			throw new InvalidException("invalid_client", error);
 		}
+	}
+	
+	public static int deleteClient(int clientRowId) throws InternalException
+	{
+		Client newClient= new Client();
+		
+		Map<Integer, Condition> conditions= new HashMap<Integer, Condition>();
+		Condition newCondition= Helper.prepareCondition(tableName, pk, " = ", clientRowId, "");
+		conditions.put(1, newCondition);
+		
+		return newMap.delete(newClient, conditions);
 	}
 }
 

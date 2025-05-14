@@ -8,6 +8,7 @@ public class Client {
 	private String clientSecret;
 //	private String redirectUrl;
 	private int createdBy;
+	private String grantType;
 	
 	public int getClientRowId() {
 		return clientRowId;
@@ -20,6 +21,9 @@ public class Client {
 	}
 	public String getClientSecret() {
 		return clientSecret;
+	}
+	public String getGrantType() {
+		return grantType;
 	}
 //	public String getRedirectUrl() {
 //		return redirectUrl;
@@ -51,4 +55,9 @@ public class Client {
 		this.createdBy = createdBy;
 		return this;
 	}
+	public Client setGrantType(String grantType) {
+		this.grantType = grantType;
+		return this;
+	}
+	
 }

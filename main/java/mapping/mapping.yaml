@@ -44,6 +44,7 @@ Client:
   clientId: "client_id"
   clientSecret: "client_secret"
   createdBy: "created_by"
+  grantType: "grant_type"
  pk: "client_pk"
  fk:
   user_fk:

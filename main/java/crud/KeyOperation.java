@@ -26,11 +26,10 @@ public class KeyOperation {
 		}
 		catch(ConstraintViolationException error)
 		{
-			System.out.println(error.getMessage());
-			throw new InternalException("No handling for this case.", error);
+			throw new InternalException("No handling required for this exception...");
 		}
 	}
-	
+
 	public static Key getKey(String keyId) throws InternalException, InvalidException
 	{
 		Key key= new Key();

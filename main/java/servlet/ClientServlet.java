@@ -34,10 +34,10 @@ public class ClientServlet extends HttpServlet
 		
 		try
 		{
-			Validator.checkForNull(name, "client_name");
+			Validator.validate(name, "client_name");
 			if(urlList.size() ==0 )
 			{
-				throw new InvalidException("minimum redirect_uri required - one");
+				throw new InvalidException("minimum redirect_uri required = one");
 			}
 			
 			Client newClient= ObjectBuilder.buildClientFromParam(name, url, Helper.getUserId(req));
@@ -48,7 +48,7 @@ public class ClientServlet extends HttpServlet
 			}
 			while(clientRowId==0);
 			
-			UriOperation.addUris(clientRowId, urlList);
+			UriOperation.addUris(clientRowId, urlList);		
 			
 			newClient= ClientOperation.getClient(clientRowId);
 			
@@ -60,11 +60,16 @@ public class ClientServlet extends HttpServlet
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.getWriter().write(json.toString());
 		}
-		catch(InternalException | JSONException | InvalidException error)
+		catch(InvalidException error)
 		{
 			error.printStackTrace();
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			resp.getWriter().write("{\"message\": \"" + "invalid_request" + "\"}");
+			resp.getWriter().write("{\"message\": \"" + error.getMessage() + "\"}");
+		}
+		catch(JSONException | InternalException error)
+		{
+			error.printStackTrace();
+			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -102,10 +107,16 @@ public class ClientServlet extends HttpServlet
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.getWriter().write(responseJson.toString());
 		}
-		catch(InvalidException | JSONException | InternalException error)
+		catch(InvalidException error)
 		{
 			error.printStackTrace();
-			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, error.getMessage());
+			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			resp.getWriter().write("{\"message\": \"" + error.getMessage() + "\"}");
+		}
+		catch(JSONException | InternalException error)
+		{
+			error.printStackTrace();
+			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
 }

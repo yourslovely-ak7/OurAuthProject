@@ -21,7 +21,7 @@ public class UriOperation {
 	private static final Class<Uri> pojo= Uri.class;
 	private static Mapper newMap= new Mapper();
 	
-	public static boolean addUris(int clientRowId, List<String> uriList) throws InternalException
+	public static boolean addUris(int clientRowId, List<String> uriList) throws InternalException, InvalidException
 	{
 		try
 		{
@@ -35,50 +35,17 @@ public class UriOperation {
 			
 			int rowsAffected= (int) newMap.createBatch(records.get(0), records);
 			
-			if(rowsAffected!=0)
-			{
-				return true;
-			}
-			else
-			{
-				throw new InternalException("Error inserting mentioned scopes!");
-			}
+			return rowsAffected!=0;
 		}
 		catch(ConstraintViolationException error)
 		{
+			ClientOperation.deleteClient(clientRowId);
+
 			System.out.println(error.getMessage());
-			throw new InternalException("redirectUri already exists", error);
+			throw new InvalidException("Client with the given url already exists!", error);
 		}
 	}
 	
-//	public static boolean checkForUri(int clientRowId, String redirectUri) throws InternalException
-//	{
-//		try
-//		{
-//			Uri obj= new Uri();
-//			List<String> requiredFields= Helper.getAllFields(pojo);
-//			Map<Uri, List<String>> objects= new HashMap<>();
-//			objects.put(obj, requiredFields);
-//			
-//			Map<Integer,Condition> conditions= new HashMap<>();
-//			Condition newCondition= Helper.prepareCondition(tableName, "clientRowId", " = ", clientRowId, "");
-//			conditions.put(1, newCondition);
-//			
-//			newCondition= Helper.prepareCondition(tableName, "redirectUri", " LIKE ", redirectUri, "AND");
-//			conditions.put(2, newCondition);
-//			
-//			Order order= Helper.prepareOrder(obj, orderBy, false, 1, 1);
-//			
-//			obj= Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);
-//			System.out.println("Scope checked for "+ obj.getRedirectUri());
-//			return true;			
-//		}
-//		catch(InternalException error)
-//		{
-//			System.out.println("Error: "+ error.getMessage());
-//			throw new InternalException("redirectUri not found");
-//		}
-//	}
 	
 	public static List<String> getUris(int clientRowId) throws InternalException, InvalidException
 	{
@@ -119,3 +86,32 @@ public class UriOperation {
 			throw new InvalidException("invalid_redirect_uri");			
 	}
 }
+
+//	public static boolean checkForUri(int clientRowId, String redirectUri) throws InternalException
+//	{
+//		try
+//		{
+//			Uri obj= new Uri();
+//			List<String> requiredFields= Helper.getAllFields(pojo);
+//			Map<Uri, List<String>> objects= new HashMap<>();
+//			objects.put(obj, requiredFields);
+//			
+//			Map<Integer,Condition> conditions= new HashMap<>();
+//			Condition newCondition= Helper.prepareCondition(tableName, "clientRowId", " = ", clientRowId, "");
+//			conditions.put(1, newCondition);
+//			
+//			newCondition= Helper.prepareCondition(tableName, "redirectUri", " LIKE ", redirectUri, "AND");
+//			conditions.put(2, newCondition);
+//			
+//			Order order= Helper.prepareOrder(obj, orderBy, false, 1, 1);
+//			
+//			obj= Helper.getSingleElePojo(newMap.read(objects, conditions, order), pojo);
+//			System.out.println("Scope checked for "+ obj.getRedirectUri());
+//			return true;			
+//		}
+//		catch(InternalException error)
+//		{
+//			System.out.println("Error: "+ error.getMessage());
+//			throw new InternalException("redirectUri not found");
+//		}
+//	}

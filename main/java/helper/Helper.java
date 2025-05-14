@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -218,5 +219,20 @@ public class Helper {
 		}
 		
 		return sb.toString().trim();
+	}
+	
+	public static List<String> convertJSONArrayToList(JSONArray uris, String name) throws JSONException, InvalidException
+	{
+		Validator.validate(uris, name);
+		
+		List<String> uriList= new ArrayList<>();
+		int len= uris.length();
+		
+		for(int i=0;i<len;i++)
+		{
+			uriList.add(uris.getString(i));
+		}
+		
+		return uriList;
 	}
 }

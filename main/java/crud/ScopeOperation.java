@@ -39,19 +39,11 @@ public class ScopeOperation
 			
 			int rowsAffected= (int) newMap.createBatch(records.get(0), records);
 			
-			if(rowsAffected!=0)
-			{
-				return true;
-			}
-			else
-			{
-				throw new InternalException("Error inserting mentioned scopes!");
-			}
+			return rowsAffected!=0;
 		}
 		catch(ConstraintViolationException error)
 		{
-			System.out.println(error.getMessage());
-			throw new InternalException("No handling written for this case.", error);
+			throw new InternalException("No handling required for this exception...");
 		}
 	}
 	

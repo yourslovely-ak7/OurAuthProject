@@ -40,6 +40,7 @@ public class AuthorizationOperation
 		}
 		catch (ConstraintViolationException error) 
 		{
+			System.out.println(tableName+" entry already exists!");
 			return null;
 		}
 	}
@@ -72,7 +73,7 @@ public class AuthorizationOperation
 		catch(InvalidException error)
 		{
 			System.out.println(error.getMessage());
-			throw new InvalidException("invalid_code");
+			throw new InvalidException("invalid_code", error);
 		}
 	}
 
@@ -94,8 +95,7 @@ public class AuthorizationOperation
 		}
 		catch(ConstraintViolationException error)
 		{
-			System.out.println("No handling required for this method...");
-			return false;
+			throw new InternalException("No handling required for this exception...");
 		}
 	}
 }
