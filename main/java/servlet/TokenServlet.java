@@ -72,7 +72,7 @@ public class TokenServlet extends HttpServlet
 				clientId= credentials[0];
 				clientSecret= credentials[1];
 			}
-			
+
 			JSONObject jsonResponse=null;
 			switch(type)
 			{
@@ -87,17 +87,19 @@ public class TokenServlet extends HttpServlet
 					String scope= req.getParameter("scope");
 					jsonResponse= grantByClientCred(clientId, clientSecret, scope);
 					break;
-					
+				
 				case "refresh_token":
 					String refreshToken= req.getParameter("refresh_token");
 					scope= req.getParameter("scope");
 					jsonResponse= refreshToken(clientId, clientSecret, refreshToken, scope);
 					break;
+					
+				case "client_registration":
+					jsonResponse= initialToken(clientId, clientSecret);
+					break;
 			}
-			
+
 			resp.setStatus(HttpServletResponse.SC_OK);
-			resp.addHeader("Cache-Control", "no-store");
-			resp.addHeader("Pragma", "no-cache");
 			resp.getWriter().write(jsonResponse.toString());
 		}
 		catch(InvalidException error)
@@ -223,6 +225,33 @@ public class TokenServlet extends HttpServlet
 		}
 		
 		return jsonResponse;
+	}
+	
+	private JSONObject initialToken(String clientId, String clientSecret) throws InvalidException, InternalException, JSONException
+	{
+		Client client=null;
+		client= ClientOperation.getClientById(clientId);
+		if(!(client.getClientSecret().equals(clientSecret)))
+		{
+			throw new InvalidException("invalid_client_secret.");
+		}
+		
+		int userId= client.getCreatedBy();
+		int clientRowId= client.getClientRowId();
+
+		JSONObject response= new JSONObject();
+
+		RefreshToken rToken= generateRefreshToken(userId, clientRowId, 0);
+		AccessToken aToken= generateAccessToken(rToken.getRefreshTokenId(), 0, userId, clientRowId);
+
+		response.put("refresh_token", rToken.getRefreshToken());
+		response.put("access_token", aToken.getAccessToken());
+		response.put("expires_in", 3600);
+		
+		String[] scopes= {Scopes.REGISTER_CREATE.getName()};
+		ScopeOperation.addScopes(0, scopes, aToken.getAccessTokenId());
+		
+		return response;
 	}
 	
 	private RefreshToken generateRefreshToken(int userId, int clientRowId, int authId) throws InternalException

@@ -59,6 +59,15 @@
         <url-pattern>/introspect</url-pattern>
     </servlet-mapping>
     
+    <servlet>
+        <servlet-name>RegisterServlet</servlet-name>
+        <servlet-class>servlet.RegisterServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RegisterServlet</servlet-name>
+        <url-pattern>/register</url-pattern>
+    </servlet-mapping>
+    
     <filter>
     	<filter-name>AuthenticationFilter</filter-name>
     	<filter-class>filter.AuthenticationFilter</filter-class>
@@ -78,4 +87,12 @@
     	<url-pattern>/resource</url-pattern>
     </filter-mapping>
     
+	<filter>
+    	<filter-name>RegisterFilter</filter-name>
+    	<filter-class>filter.RegisterFilter</filter-class>
+    </filter>
+    <filter-mapping>
+    	<filter-name>RegisterFilter</filter-name>
+    	<url-pattern>/register</url-pattern>
+    </filter-mapping>
 </web-app>

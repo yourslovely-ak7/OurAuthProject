@@ -35,31 +35,19 @@ public class OurAuth extends HttpServlet
 		switch(type)
 		{
 			case "code":
-				requestValidate(req, resp);
+				String clientId= req.getParameter("client_id");
+				String redirectUrl= req.getParameter("redirect_uri");
+				String scope= req.getParameter("scope");
+				
+				if(scope==null)
+				{
+					scope= defaultScopes;
+				}
+				typeCode(clientId, redirectUrl, scope, req, resp);
 				break;
 			
 			case "consent":
 				generateCode(req, resp);
-				break;
-		}
-	}
-	
-	private void requestValidate(HttpServletRequest req, HttpServletResponse resp) throws IOException
-	{
-		String clientId= req.getParameter("client_id");
-		String redirectUrl= req.getParameter("redirect_uri");
-		String scope= req.getParameter("scope");
-		
-		if(scope==null)
-		{
-			scope= defaultScopes;
-		}
-		
-		String responseType= req.getParameter("response_type");
-		switch(responseType)
-		{
-			case "code":
-				typeCode(clientId, redirectUrl, scope, req, resp);
 				break;
 		}
 	}

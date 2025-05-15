@@ -30,33 +30,12 @@ public class ClientServlet extends HttpServlet
 	{
 		String name= req.getParameter("name");
 		String url= req.getParameter("redirectUrl");
-		List<String> urlList= Arrays.asList(url.split(" "));
 		
 		try
 		{
-			Validator.validate(name, "client_name");
-			if(urlList.size() ==0 )
-			{
-				throw new InvalidException("minimum redirect_uri required = one");
-			}
+			Validator.validate(name, "client_name");			
 			
-			Client newClient= ObjectBuilder.buildClientFromParam(name, url, Helper.getUserId(req));
-			int clientRowId;
-			
-			do {
-				clientRowId= ClientOperation.createClient(newClient);
-			}
-			while(clientRowId==0);
-			
-			UriOperation.addUris(clientRowId, urlList);		
-			
-			newClient= ClientOperation.getClient(clientRowId);
-			
-			JSONObject json= new JSONObject();
-			json.put("name", newClient.getClientName());
-			json.put("clientId", newClient.getClientId());
-			json.put("clientSecret", newClient.getClientSecret());
-
+			JSONObject json= clientCreation(name, url, Helper.getUserId(req));
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.getWriter().write(json.toString());
 		}
@@ -72,12 +51,12 @@ public class ClientServlet extends HttpServlet
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException 
 	{
 		int userId= Helper.getUserId(req);
-		
+
 		try
 		{
 			List<Client> clients= ClientOperation.getAllClients(userId);
@@ -102,7 +81,7 @@ public class ClientServlet extends HttpServlet
 				
 				jsonClients.put(json);
 			}
-			
+
 			responseJson.put("clientData", jsonClients);
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.getWriter().write(responseJson.toString());
@@ -118,5 +97,33 @@ public class ClientServlet extends HttpServlet
 			error.printStackTrace();
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
+	}
+	
+	public static JSONObject clientCreation(String name, String url, int userId) throws InternalException, InvalidException, JSONException
+	{
+		List<String> urlList= Arrays.asList(url.split(" "));
+		if(urlList.size() ==0 )
+		{
+			throw new InvalidException("minimum redirect_uri required = one");
+		}
+		
+		Client newClient= ObjectBuilder.buildClientFromParam(name, url, userId);
+		int clientRowId;
+		
+		do {
+			clientRowId= ClientOperation.createClient(newClient);
+		}
+		while(clientRowId==0);
+		
+		UriOperation.addUris(clientRowId, urlList);		
+		
+		newClient= ClientOperation.getClient(clientRowId);
+		
+		JSONObject json= new JSONObject();
+		json.put("name", newClient.getClientName());
+		json.put("clientId", newClient.getClientId());
+		json.put("clientSecret", newClient.getClientSecret());
+
+		return json;
 	}
 }

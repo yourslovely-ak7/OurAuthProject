@@ -30,7 +30,7 @@ public class ClientOperation {
 				
 				return (int) newMap.create(newClient, true);
 			}
-			catch (ConstraintViolationException error) 
+			catch (ConstraintViolationException error)
 			{
 				String message= error.getMessage();
 				if(message.contains("client_id"))

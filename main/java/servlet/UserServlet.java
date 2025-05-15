@@ -129,9 +129,8 @@ public class UserServlet extends HttpServlet{
 		HttpSession session= req.getSession(false);
 		if(session!=null)
 		{
-			session.invalidate();			
+			session.invalidate();	
 		}
-		
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.sendRedirect("/OurAuth/login.html");
 	}

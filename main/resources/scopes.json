@@ -3,6 +3,10 @@
 				{
 					"path": "/OurAuth/resource",
 					"requirement": ["RESOURCE.read"]
+				},
+				{
+					"path": "/OurAuth/register",
+					"requirement": ["REGISTER.create"]
 				}
 	]
 }

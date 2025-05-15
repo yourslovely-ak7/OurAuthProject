@@ -14,7 +14,8 @@ import builder.ObjectBuilder;
 import exception.InternalException;
 import exception.InvalidException;
 import helper.Helper;
-import pojo.ClientRegister;
+import helper.Validator;
+import pojo.Client;
 
 @SuppressWarnings("serial")
 public class RegisterServlet extends HttpServlet
@@ -25,10 +26,15 @@ public class RegisterServlet extends HttpServlet
 		try
 		{
 			JSONObject jsonParam= Helper.getJsonRequest(req);
-			ClientRegister newReg= ObjectBuilder.buildRegistration(jsonParam);
+			Client newReg= ObjectBuilder.buildRegistration(jsonParam);
 			
+			String url= jsonParam.getString("redirect_uris");
+			Validator.validate(url, "redirect_uris");
 			
-			
+			JSONObject json= ClientServlet.clientCreation(newReg.getClientName(), url, Helper.getUserId(req));
+			json.put("request_params", jsonParam);
+			resp.setStatus(HttpServletResponse.SC_OK);
+			resp.getWriter().write(json.toString());
 		}
 		catch(InvalidException error)
 		{

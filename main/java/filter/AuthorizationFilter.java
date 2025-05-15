@@ -74,7 +74,7 @@ public class AuthorizationFilter implements Filter{
 		}
 	}
 	
-	private static boolean hasAuthority(String endPoint, int authId, int atId) throws InternalException, InvalidException
+	public static boolean hasAuthority(String endPoint, int authId, int atId) throws InternalException, InvalidException
 	{
 		System.out.println("Endpoint: "+endPoint);
 		try
@@ -120,7 +120,6 @@ public class AuthorizationFilter implements Filter{
 					}					
 				}
 			}
-			
 			return verifyFlag;
 		}
 		catch(JSONException error)

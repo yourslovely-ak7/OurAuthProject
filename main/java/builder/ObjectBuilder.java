@@ -1,19 +1,14 @@
 package builder;
 
-import java.util.List;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import crud.ClientOperation;
 import exception.InternalException;
 import exception.InvalidException;
-import helper.Helper;
 import pojo.AccessToken;
 import pojo.Authorization;
 import pojo.Client;
-import pojo.ClientRegister;
 import pojo.RefreshToken;
 import pojo.Status;
 import pojo.User;
@@ -79,24 +74,25 @@ public class ObjectBuilder {
 		.setStatus(Status.ACTIVE.name());
 	}
 	
-	public static ClientRegister buildRegistration(JSONObject param) throws InvalidException, JSONException
+	public static Client buildRegistration(JSONObject param) throws InvalidException, JSONException
 	{
-		JSONArray redirectUris= param.getJSONArray("redirect_uris");
-		List<String> uriList= Helper.convertJSONArrayToList(redirectUris, "redirect_uris");
-		
-		if(uriList.size()==0)
+		String grantType= null, responseType= null;
+		try
 		{
-			throw new InvalidException("minimum redirect_uri required = one");
+			grantType= param.getString("grant_type");
+			responseType= param.getString("response_type");		
+		}
+		catch(JSONException error)
+		{
+			System.out.println(error.getMessage());
 		}
 		
-		String grantType= validateGrantType(param.getString("grant_type"));
-		String responseType= validateRespType(grantType, param.getString("response_type"));
-		
-		return new ClientRegister()
+		grantType= validateGrantType(grantType);
+		//Currently not needed other than validation
+		responseType= validateRespType(grantType, responseType);
+		return new Client()
 				.setClientName(param.getString("client_name"))
-				.setRedirectUris(uriList)
-				.setGrantType(grantType)
-				.setResponseType(responseType);
+				.setGrantType(grantType);
 	}
 	
 	private static String validateGrantType(String grantType) throws InvalidException
@@ -120,9 +116,9 @@ public class ObjectBuilder {
 		{
 			if(respType == null)
 			{
-				respType= "code";				
+				respType= "code";	
 			}
-			else if(respType!= "code")
+			else if(!respType.equals("code"))
 			{
 				throw new InvalidException("invalid_response_type");
 			}
